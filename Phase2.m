@@ -34,15 +34,44 @@ signalLength = samplingFreq * bits/dataRate + 1;
 snrDB = 0:0.2:20;
 SNR = (10.^(snrDB/10));
 
-%number of run of times
-runTime = 10;
+%number of test per samples
+testSamples = 100;
 
 ookErrorRate = zeros(length(SNR)); %OOK error rate
 
 
+%generate data
+data = round(randi([0 1], bits, 1));
+data = transpose(data);
+
+dataSignal = zeros(1, signalLength);
+
+for n = 1: signalLength - 1
+    dataSignal(n) = data(ceil(n*dataRate/samplingFreq));
+end
+
+dataSignal(signalLength) = dataSignal(signalLength - 1);
+
+%==== OOK ====%
+ookSignal = carrierSignal .* dataSignal;
+
+ookSignalPower = (norm(ookSignal)^2)/signalLength;
+
+ookNoisePower = ookSignalPower ./ SNR;
 
 
+for i = 1 : length(SNR)
+    ookAverageError = 0;
 
+    for j = 1 : testSamples
+        avgOOKNoisePower = ookSignalPower ./ SNR(i);
+        ookNoise = sqrt(avgOOKNoisePower) .* transpose(randi([0 1], signalLength, 1));
+        receivedOOKSignal = ookSignal + ookNoise;
+
+        
+        
+
+ 
 
 
 
