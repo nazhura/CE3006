@@ -196,6 +196,13 @@ e0OOk = 0;
 ebOOK = (1 / 2) * (e1OOK + e0OOk);
 noOOK = ookNoisePower ./ bits ./ 2;
 coherentOOK = (1 / 2) .* erfc(sqrt(ebOOK ./ (2 .* noOOK)));
+
+% Calculate BFSK coherent
+e1BFSK = (1 / 2) * amplitude^2 / bits;
+e0BFSK = (1 / 2) * amplitude^2 / bits;
+ebBFSK = (1 / 2) * (e1BFSK + e0BFSK);
+noBFSK = bpskNoisePower ./ bits ./ 2;
+coherentBFSK = (1 / 2) .* erfc(sqrt(ebBFSK ./ (2 .* noBFSK)));
         
 
 function [input, output] = samplingforthreshold(filter, period, threshold, bits)
