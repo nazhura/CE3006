@@ -41,13 +41,13 @@ ookErrorRate = zeros(length(SNR)); %OOK error rate
 
 
 %generate data
-data = round(randi([0 1], bits, 1));
-data = transpose(data);
+generatedData = round(randi([0 1], bits, 1));
+generatedData = transpose(generatedData);
 
 dataSignal = zeros(1, signalLength);
 
 for n = 1: signalLength - 1
-    dataSignal(n) = data(ceil(n*dataRate/samplingFreq));
+    dataSignal(n) = generatedData(ceil(n*dataRate/samplingFreq));
 end
 
 dataSignal(signalLength) = dataSignal(signalLength - 1);
@@ -68,10 +68,85 @@ for i = 1 : length(SNR)
         ookNoise = sqrt(avgOOKNoisePower) .* transpose(randi([0 1], signalLength, 1));
         receivedOOKSignal = ookSignal + ookNoise;
 
+        %demodulation
+        ookDemodulated = receivedOOKSignal .* (2 .* carrierSignal);
+        ookFiltered = filtfilt(b, a, ookDemodulated);
+
+        %sampling period for demodulation
+        samplingPeriod = samplingFreq / dataRate;
+        avgPower = amplitude^2/2;
         
+        [ookInput, ookOutput] = samplingforthreshold(ookFiltered, samplingPeriod, avgPower, bits);
+
+
+        ookError = 0;
+
+        for k = 1: bits
+            if(ookOutput(k) ~= generatedData(k))
+                ookOutput = ookOutput + 1;
+            end
+        end
+
+        ookError = ookError./bits;
+        ookAverageError = ookError + ookAverageError;
+
+    end
+
+    %Plot the 5db SNR signals
+    if (snrDB(i) == 5)
+    %Plot of original data with respect to time
+       figure(2)
+       plot(data, 'b');
+       title("Original Data")
+       xlim([0 1024])
+
+       figure(3);
+       subplot(4,1,1);
+       plot(dataSignal(1:1024));
+       title("Baseband oversampled signal (snippet)");
+        
+       %Plotting of Received signal (corrupted with noise)
+       subplot(4, 1, 2);
+       plot(receivedOOKSignal(1:1024));
+       title("OOK received with noise (Snippet)");
+        
+       subplot(4, 1, 3);
+       plot(ookSignal(1:1024));
+       title("OOK modulated signal (Snippet)");
+
+       
+        %Plotting of demodulated signal (mixed and passed through low pass filter
+        figure(5);
+        subplot(3, 1, 1);
+        plot(ookInput(1:1024));
+        title("OOK demodulated and sampled");
+    end
+
+end    
+
+% Calculate OOK coherent
+e1OOK = (1 / 2) * amplitude^2 / bits;
+e0OOk = 0;
+ebOOK = (1 / 2) * (e1OOK + e0OOk);
+noOOK = ookNoisePower ./ bits ./ 2;
+coherentOOK = (1 / 2) .* erfc(sqrt(ebOOK ./ (2 .* noOOK)));
         
 
+function [input, output] = samplingforthreshold(filter, period, threshold, bits)
+    input = zeros(1, bits);
+    output = input;
+    avgTime = period / 2;
+
+    for i = 1: bits
+        input(i) = filter((2 * i - 1) * avgTime);
+        if(input(i) > threshold)
+            output(i) = 1;
+        else
+            output(i) = 0;
+        end
+    end
+end
  
 
 
-
+%need plot semilogy for all:
