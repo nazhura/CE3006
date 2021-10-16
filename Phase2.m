@@ -96,7 +96,7 @@ for i = 1 : length(SNR)
     if (snrDB(i) == 5)
     %Plot of original data with respect to time
        figure(2)
-       plot(data, 'b');
+       plot(dataSignal, 'b');
        title("Original Data")
        xlim([0 1024])
 
@@ -120,6 +120,20 @@ for i = 1 : length(SNR)
         subplot(3, 1, 1);
         plot(ookInput(1:1024));
         title("OOK demodulated and sampled");
+
+       figure(6);
+       subplot(4, 1, 1);
+       plot(generatedData);
+       title("Original Data")
+       xlim([0 1024])
+       ylim([0 1])
+
+       subplot(4, 1, 2);
+       plot(ookOutput);
+       title("OOK Decoded Data");
+       xlim([0 1024])
+       
+
     end
 
 end    
