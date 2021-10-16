@@ -38,6 +38,7 @@ SNR = (10.^(snrDB/10));
 testSamples = 100;
 
 ookErrorRate = zeros(length(SNR)); %OOK error rate
+bpskErrorRate = zeros(length(SNR)); %BPSK error rate
 
 
 %generate data
@@ -54,41 +55,60 @@ dataSignal(signalLength) = dataSignal(signalLength - 1);
 
 %==== OOK ====%
 ookSignal = carrierSignal .* dataSignal;
-
 ookSignalPower = (norm(ookSignal)^2)/signalLength;
-
 ookNoisePower = ookSignalPower ./ SNR;
 
+%==== BPSK ====%
+bpskSourceSignal = dataSignal .* 2 - 1; %*2 bc of negative 1 and 1 bc ook is 0 to 1 so don't need *2
+bpskSignal = carrierSignal .* bpskSourceSignal; % this too
+bpskSignalPower = (norm(bpskSignal)^2)/signalLength;
+bpskNoisePower = bpskSignalPower ./ SNR;
 
 for i = 1 : length(SNR)
-    ookAverageError = 0;
+    ookAvgError = 0;
+    bpskAvgError = 0;
+    
 
     for j = 1 : testSamples
         avgOOKNoisePower = ookSignalPower ./ SNR(i);
         ookNoise = sqrt(avgOOKNoisePower) .* transpose(randi([0 1], signalLength, 1));
         receivedOOKSignal = ookSignal + ookNoise;
 
+        avgBPSKNoisePower = bpskSignalPower ./ SNR(i);
+        bpskNoise = sqrt(avgBPSKNoisePower) .* transpose(randi([0 1], signalLength, 1));
+        receivedBPSKSignal = bpskSignal + bpskNoise;
+
         %demodulation
         ookDemodulated = receivedOOKSignal .* (2 .* carrierSignal);
         ookFiltered = filtfilt(b, a, ookDemodulated);
+
+        bpskDemodulated = receivedBPSKSignal .* (2 .* carrierSignal);
+        bpskFiltered = filtfilt(b, a, bpskDemodulated);
 
         %sampling period for demodulation
         samplingPeriod = samplingFreq / dataRate;
         avgPower = amplitude^2/2;
         
         [ookInput, ookOutput] = samplingforthreshold(ookFiltered, samplingPeriod, avgPower, bits);
-
+        [bpskInput, bpskOutput] = samplingforthreshold(bpskFiltered, samplingPeriod, 0, bits); %threshold is 0 
 
         ookError = 0;
+        bpskError = 0;
 
         for k = 1: bits
             if(ookOutput(k) ~= generatedData(k))
-                ookOutput = ookOutput + 1;
+                ookError = ookError + 1;
+            end
+             if(bpskOutput(k) ~= generatedData(k))
+                bpskOutput = bpskOutput + 1;
             end
         end
 
         ookError = ookError./bits;
-        ookAverageError = ookError + ookAverageError;
+        ookAvgError = ookError + ookAvgError;
+
+        bpskError = bpskError./bits;
+        bpskAvgError = bpskError + bpskAvgError;
 
     end
 
@@ -131,6 +151,38 @@ for i = 1 : length(SNR)
        subplot(4, 1, 2);
        plot(ookOutput);
        title("OOK Decoded Data");
+       xlim([0 1024])
+
+       %
+       figure(7);
+       subplot(4,1,1);
+       plot(dataSignal(1:1024));
+       title("Baseband oversampled signal (snippet)");
+        
+       %Plotting of Received signal (corrupted with noise)
+       subplot(4, 1, 2);
+       plot(receivedBPSKSignal(1:1024));
+       title("BPSK received with noise (Snippet)");
+        
+       subplot(4, 1, 3);
+       plot(bpskSignal(1:1024));
+       title("BPSK modulated signal (Snippet)");
+
+       figure(8);
+       subplot(3, 1, 1);
+       plot(bpskInput(1:1024));
+       title("BPSK demodulated and sampled");
+
+       figure(9);
+       subplot(4, 1, 1);
+       plot(generatedData);
+       title("Original Data")
+       xlim([0 1024])
+       ylim([0 1])
+
+       subplot(4, 1, 2);
+       plot(bpskOutput);
+       title("BPSK Decoded Data");
        xlim([0 1024])
        
 
