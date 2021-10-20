@@ -6,7 +6,7 @@ clc;
 
 bitCount = 1024;
 sigPower = 1;
-SNR_dB = 0:1:20;
+SNR_dB = 0:0.2:30;
 SNR = power(10, SNR_dB/10);
 
 repeatRuns = 10;
