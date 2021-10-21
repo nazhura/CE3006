@@ -134,4 +134,13 @@ for i = 1: length(SNR)
         orig_receivedOOKSignal = orig_ookSignal + orig_ookNoise;
 
         %BPSK
-        
+        avgBPSKNoisePower = bpskSignalPower ./ SNR(i);
+        bpskNoise = sqrt(avgBPSKNoisePower) .* transpose(randi([0 1], signalLength, 1));
+        receivedBPSKSignal = bpskSignal + bpskNoise;
+
+        %BFSK
+        avgBFSKNoisePower = bfskSignalPower ./ SNR(i);
+        bfskNoise = sqrt(avgBFSKNoisePower) .* transpose(randi([0 1], signalLength, 1));
+        receivedBFSKSignal = bfskSignal + bfskNoise;
+
+        %What detection to use???
