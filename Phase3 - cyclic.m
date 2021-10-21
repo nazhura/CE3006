@@ -143,4 +143,23 @@ for i = 1: length(SNR)
         bfskNoise = sqrt(avgBFSKNoisePower) .* transpose(randi([0 1], signalLength, 1));
         receivedBFSKSignal = bfskSignal + bfskNoise;
 
-        %What detection to use???
+        %Non-coherent Detection method of demodulation
+        ookDemodulated = receivedOOKSignal .* (2 .* carrierSignal);
+        ookFiltered = filtfilt(b, a, ookDemodulated);
+
+        orig_ookDemodulated = orig_receivedOOKSignal .* (2 .* carrierSignal(1:actualSignalLength));
+        orig_ookFiltered = filtfilt(b, a, orig_ookDemodulated);
+
+        bpskDemodulated = receivedBPSKSignal .* (2 .* carrierSignal);
+        bpskFiltered = filtfilt(b, a, bpskDemodulated);
+
+        bfskDemodulated_high = receivedBFSKSignal .* (2 .* carrierSignal_FSK1);
+        bfskFiltered_high = filtfilt(b, a, bfskDemodulated_high);
+        bfskDemodulated_low = receivedBFSKSignal .* (2 .* carrierSignal_FSK2);
+        bfskFiltered_low = filtfilt(b, a, bfskDemodulated_low);
+        bfskFiltered = bfskFiltered_high - bfskFiltered_low;
+
+        
+
+
+% TO CONTINUE
