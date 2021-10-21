@@ -125,15 +125,13 @@ for i = 1: length(SNR)
     for j = 1 : testSamples
         %encoded OOK
         avgOOKNoisePower = ookSignalPower ./ SNR(i);
-        ookNoise = sqrt(avgOOKNoisePower) .* randn(1, signalLength);
+        ookNoise = sqrt(avgOOKNoisePower) .* transpose(randi([0 1], signalLength, 1));
         receivedOOKSignal = ookSignal + ookNoise;
 
         %unencoded OOK
         orig_avgOOKNoisePower = orig_ookSignalPower ./ SNR(i);
-        orig_ookNoise = sqrt(orig_avgOOKNoisePower) .* randn(1, actualSignalLength);
+        orig_ookNoise = sqrt(orig_avgOOKNoisePower) .* transpose(randi([0 1], signalLength, 1));
         orig_receivedOOKSignal = orig_ookSignal + orig_ookNoise;
 
         %BPSK
         
-
-%TO CONTINUE
