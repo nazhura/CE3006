@@ -122,4 +122,18 @@ for i = 1: length(SNR)
     bfskAvgError = 0;
     result = zeros(1, testSamples);
 
-    %TO CONTINUE
+    for j = 1 : testSamples
+        %encoded OOK
+        avgOOKNoisePower = ookSignalPower ./ SNR(i);
+        ookNoise = sqrt(avgOOKNoisePower) .* randn(1, signalLength);
+        receivedOOKSignal = ookSignal + ookNoise;
+
+        %unencoded OOK
+        orig_avgOOKNoisePower = orig_ookSignalPower ./ SNR(i);
+        orig_ookNoise = sqrt(orig_avgOOKNoisePower) .* randn(1, actualSignalLength);
+        orig_receivedOOKSignal = orig_ookSignal + orig_ookNoise;
+
+        %BPSK
+        
+
+%TO CONTINUE
