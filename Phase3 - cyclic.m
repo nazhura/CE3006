@@ -83,3 +83,6 @@ end
 for n = 1 : actualSignalLength - 1          %original signal
     actualDataSignal(n) = generatedData(ceil(n*dataRate/samplingFreq));
 end
+
+
+%% to continue
