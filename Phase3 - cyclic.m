@@ -64,7 +64,7 @@ table = syndtable(parmat);
 ookErrorRate = zeros(length(SNR)); %OOK error rate
 ookErrorRate_org = zeros(length(SNR)); %OOK error rate - unencoded
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
-bpskErrorRate_org = zeros(length(SNR)); %BPSK error rate
+bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 
 %generate data
 generatedData = round(randi([0 1], bits, 1));
@@ -84,5 +84,42 @@ for n = 1 : actualSignalLength - 1          %original signal
     actualDataSignal(n) = generatedData(ceil(n*dataRate/samplingFreq));
 end
 
+%% Why overwrite?
+dataSignal(signalLength) = dataSignal(signalLength - 1);
+actualDataSignal(actualSignalLength) = actualDataSignal(actualSignalLength - 1);
 
-%% to continue
+%==== OOK ====%
+%encoded signal
+ookSignal = carrierSignal .* dataSignal;
+ookSignalPower = (norm(ookSignal)^2)/signalLength;
+ookNoisePower = ookSignalPower ./ SNR;
+
+%unencoded signal
+orig_ookSignal = carrierSignal(1:actualSignalLength) .* actualDataSignal;
+orig_ookSignalPower = (norm(orig_ookSignal)^2)/actualSignalLength;
+orig_ookNoisePower = orig_ookSignalPower ./ SNR;
+
+%==== BPSK ====%
+%% BPSK do not need to do unencoded signal?
+bpskSourceSignal = dataSignal .* 2 - 1; %*2 bc of negative 1 and 1 bc ook is 0 to 1 so don't need *2
+bpskSignal = carrierSignal .* bpskSourceSignal; % this too
+bpskSignalPower = (norm(bpskSignal)^2)/signalLength;
+bpskNoisePower = bpskSignalPower ./ SNR;
+
+%==== BFSK ====%
+%% BFSK do not need to do uncoded signal?
+bfskSourceSignal_high = carrierSignal_FSK1 .* (dataSignal == 1);
+bfskSourceSignal_low = carrierSignal_FSK2 .* (dataSignal == 0);
+bfskSourceSignal = bfskSourceSignal_low + bfskSourceSignal_high;
+bfskSignalPower = (norm(bfskSignal)^2)/signalLength;
+bfskNoisePower = bfskSignalPower ./ SNR;
+
+% For each value of SNR, test of 100 samples
+for i = 1: length(SNR)
+    ookAvgError = 0;
+    orig_ookAvgError = 0;
+    bpskAvgError = 0;
+    bfskAvgError = 0;
+    result = zeros(1, testSamples);
+
+    %TO CONTINUE
