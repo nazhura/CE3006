@@ -25,7 +25,7 @@ msgbits = bits*codeword_length/message_length;  %actual message bit, excluding p
 %sampling rate = sampling frequency / dataRate:
 samplingRate = samplingFreq / dataRate;
 
-%amplitude for 
+%amplitude for gain
 amplitude = 8; 
 
 %% time scale in seconds for ....
@@ -100,17 +100,15 @@ orig_ookSignalPower = (norm(orig_ookSignal)^2)/actualSignalLength;
 orig_ookNoisePower = orig_ookSignalPower ./ SNR;
 
 %==== BPSK ====%
-%% BPSK do not need to do unencoded signal?
 bpskSourceSignal = dataSignal .* 2 - 1; %*2 bc of negative 1 and 1 bc ook is 0 to 1 so don't need *2
 bpskSignal = carrierSignal .* bpskSourceSignal; % this too
 bpskSignalPower = (norm(bpskSignal)^2)/signalLength;
 bpskNoisePower = bpskSignalPower ./ SNR;
 
 %==== BFSK ====%
-%% BFSK do not need to do uncoded signal?
 bfskSourceSignal_high = carrierSignal_FSK1 .* (dataSignal == 1);
-bfskSourceSignal_low = carrierSignal_FSK2 .* (dataSignal == 0);
-bfskSourceSignal = bfskSourceSignal_low + bfskSourceSignal_high;
+bfskSignal_low = carrierSignal_FSK2 .* (dataSignal == 0);
+bfskSignal = bfskSourceSignal_low + bfskSourceSignal_high;
 bfskSignalPower = (norm(bfskSignal)^2)/signalLength;
 bfskNoisePower = bfskSignalPower ./ SNR;
 
@@ -159,7 +157,14 @@ for i = 1: length(SNR)
         bfskFiltered_low = filtfilt(b, a, bfskDemodulated_low);
         bfskFiltered = bfskFiltered_high - bfskFiltered_low;
 
-        
+        %sampling period for demodulation
+        %% Question: isn't samplingPeriod = samplingRate (line 26)?
+        samplingPeriod = samplingFreq / dataRate;
+        avgPower = amplitude^2/2;
 
+        [ookInput, ookOutput] = samplingforthreshold(ookFiltered, samplingPeriod, avgPower, bits);
+        [orig_ookInput, orig_ookOutput] = samplingforthreshold(orig_ookFiltered, samplingPeriod, avgPower, msgbits);    %note the change to unencoded bits
+        [bpskInput, bpskOutput] = samplingforthreshold(bpskFiltered, samplingPeriod, 0, bits); %threshold is 0 
+        [bfskInput, bfskOutput] = samplingforthreshold(bfskFiltered, samplingPeriod, 0, bits);
 
 % TO CONTINUE
