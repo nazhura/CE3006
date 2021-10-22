@@ -62,7 +62,7 @@ parmat = cyclgen(codeword_length, polynom);
 table = syndtable(parmat);
 
 ookErrorRate = zeros(length(SNR)); %OOK error rate
-ookErrorRate_org = zeros(length(SNR)); %OOK error rate - unencoded
+ookErrorRate_orig = zeros(length(SNR)); %OOK error rate - unencoded
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
 bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 
@@ -167,4 +167,46 @@ for i = 1: length(SNR)
         [bpskInput, bpskOutput] = samplingforthreshold(bpskFiltered, samplingPeriod, 0, bits); %threshold is 0 
         [bfskInput, bfskOutput] = samplingforthreshold(bfskFiltered, samplingPeriod, 0, bits);
 
-% TO CONTINUE
+        %Cyclic Decoding
+        decoded_OOK = decode(ookOutput, codeword_length, message_length, 'cyclic/binary', polynom, table);
+        decoded_BPSK = decode(bpskOutput, codeword_length, message_length, 'cyclic/binary', polynom, table);
+        decoded_BFSK = decode(bfskOutput, codeword_length, message_length, 'cyclic/binary', polynom, table);
+        
+        ookError = biterr(decoded_OOK, generatedData) ./ signalLength;
+        orig_ookError = biterr(orig_ookOutput, generatedData) ./ signalLength;
+        bpskError = biterr(decoded_BPSK, generatedData) ./ signalLength;
+        bfskError = biterr(decoded_BFSK, generatedData) ./ signalLength;
+
+        ookAvgError = ookAvgError + ookError;
+        orig_ookAvgError = orig_ookAvgError + orig_ookError;
+        bpskAvgError = bpskAvgError + bpskError;
+        bfskAvgError = bfskAvgError + bfskError;
+    end
+
+    ookErrorRate(i) = ookAvgError / testSamples;
+    ookErrorRate_orig(i) = orig_ookAvgError / testSamples;
+    bpskErrorRate(i) = bpskAvgError / testSamples;
+    bfskErrorRate(i) = bfskAvgError / testSamples;
+    
+    %Plot for SNR @ 5dB?
+    %% To continue
+
+
+
+
+
+
+function [input, output] = samplingforthreshold(filter, period, threshold, bits)
+    input = zeros(1, bits);
+    output = input;
+    avgTime = period / 2;
+
+    for i = 1: bits
+        input(i) = filter((2 * i - 1) * avgTime);
+        if(input(i) > threshold)
+            output(i) = 1;
+        else
+            output(i) = 0;
+        end
+    end
+end
