@@ -107,7 +107,7 @@ bpskNoisePower = bpskSignalPower ./ SNR;
 
 %==== BFSK ====%
 bfskSourceSignal_high = carrierSignal_FSK1 .* (dataSignal == 1);
-bfskSignal_low = carrierSignal_FSK2 .* (dataSignal == 0);
+bfskSourceSignal_low = carrierSignal_FSK2 .* (dataSignal == 0);
 bfskSignal = bfskSourceSignal_low + bfskSourceSignal_high;
 bfskSignalPower = (norm(bfskSignal)^2)/signalLength;
 bfskNoisePower = bfskSignalPower ./ SNR;
@@ -189,9 +189,26 @@ for i = 1: length(SNR)
     bfskErrorRate(i) = bfskAvgError / testSamples;
     
     %Plot for SNR @ 5dB?
-    %% To continue
+    if(i == 5)
+        %% To continue
+
+    end
+end
 
 
+%OOK vs BPSK bit error rate
+figure(1)
+p1 = semilogy(snrDB, ookErrorRate, 'r-*');
+hold on
+p2 = semilogy(snrDB, ookErrorRate_orig, 'k-*');
+p3 = semilogy(snrDB, bpskErrorRate, 'b-*');
+p4 = semilogy(snrDB, bfskErrorRate, 'g-*');
+hold off
+
+ylabel ('BER - Bit Error Rate');
+xlabel ('SNR(dB) - Signal to Noise Ratio in dB');
+legend([p1(1) p2(1) p3(1) p4(1)], {'Cyclic - Encoded OOK', 'Cyclic - Unencoded OOK', 'Cyclic - BPSK', 'Cyclic - BFSK'})
+xlim([0 50]);
 
 
 
