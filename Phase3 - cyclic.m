@@ -50,7 +50,7 @@ snrDB = 0:0.2:20;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
-testSamples = 100;
+testSamples = 20;
 
 %generator and syndrome table for cyclic code
 %generator polynomial and parity check matrix for cyclic encoding
@@ -67,9 +67,11 @@ bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 
 %generate data
 generatedData = round(randi([0 1], bits, 1));
+generatedData = transpose(generatedData);
 
 %encoding - cyclic
 encodedData = encode(generatedData, codeword_length, message_length, 'cyclic/binary', pol);
+encodedData = transpose(encodedData);
 
 %sampling
 dataSignal = zeros(1, signalLength);
@@ -188,10 +190,10 @@ for i = 1: length(SNR)
     bfskErrorRate(i) = bfskAvgError / testSamples;
     
     %Plot for SNR @ 5dB?
-    if(i == 5)
+    %if(i == 5)
         %% To continue
 
-    end
+    %end
 end
 
 
