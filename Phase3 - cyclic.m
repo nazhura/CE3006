@@ -19,8 +19,8 @@ samplingFreq = 16 * carrierFreq; %sampling frequency is 16 times the carrier fre
 dataRate = 1000; %1kbps
 
 %number of databits:
-bits = 1024;    %defined from Phase 1
-msgbits = bits*codeword_length/message_length;  %actual message bit, excluding parity bits
+bits = 1024;     %defined from Phase 1
+encoded_bits = bits*codeword_length/message_length;    
 
 %sampling rate = sampling frequency / dataRate:
 samplingRate = samplingFreq / dataRate;
@@ -29,7 +29,7 @@ samplingRate = samplingFreq / dataRate;
 amplitude = 8; 
 
 %% time scale in seconds for ....
-time = msgbits/dataRate; %get the time in seconds
+time = encoded_bits/dataRate; %get the time in seconds
 period = 1/samplingFreq;
 timeScale = 0 : period : time;
 
@@ -42,8 +42,8 @@ carrierSignal_FSK1 = amplitude .* cos(2*pi*carrierFreqFSK1*timeScale);
 carrierSignal_FSK2 = amplitude .* cos(2*pi*carrierFreqFSK2*timeScale);
 
 %signal length is for everywhere
-signalLength = samplingFreq * msgbits/dataRate + 1;     %encoded signal length
-actualSignalLength = samplingFreq * bits/dataRate + 1;      %unencoded signal length
+signalLength = samplingFreq * encoded_bits/dataRate + 1;     %encoded signal length
+orig_SignalLength = samplingFreq * bits/dataRate + 1;      %unencoded signal length
 
 %SNR
 snrDB = 0:0.2:20;
@@ -52,17 +52,16 @@ SNR = (10.^(snrDB/10));
 %number of test per samples
 testSamples = 100;
 
-%% What is going on??
 %generator and syndrome table for cyclic code
 %generator polynomial and parity check matrix for cyclic encoding
-polynom = cyclpoly(codeword_length, message_length);
-parmat = cyclgen(codeword_length, polynom);
+pol = cyclpoly(codeword_length, message_length);
+h = cyclgen(codeword_length, pol);
 
 %syndrome table for cyclic decoding
-table = syndtable(parmat);
+syndrometable = syndtable(h);
 
-ookErrorRate = zeros(length(SNR)); %OOK error rate
-ookErrorRate_orig = zeros(length(SNR)); %OOK error rate - unencoded
+ookErrorRate = zeros(length(SNR)); %encoded OOK error rate
+orig_ookErrorRate = zeros(length(SNR)); %unencoded OOK error rate
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
 bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 
@@ -70,47 +69,47 @@ bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 generatedData = round(randi([0 1], bits, 1));
 
 %encoding - cyclic
-encodedData = encode(generatedData, codeword_length, message_length, 'cyclic/binary', polynom);
+encodedData = encode(generatedData, codeword_length, message_length, 'cyclic/binary', pol);
 
 %sampling
 dataSignal = zeros(1, signalLength);
-actualDataSignal = zeros(1, actualSignalLength);
+orig_dataSignal = zeros(1, orig_SignalLength);
 
 for n = 1: signalLength - 1             %encoded signal
     dataSignal(n) = encodedData(ceil(n*dataRate/samplingFreq));
 end
 
-for n = 1 : actualSignalLength - 1          %original signal
-    actualDataSignal(n) = generatedData(ceil(n*dataRate/samplingFreq));
+for n = 1 : orig_SignalLength - 1          %original signal
+    orig_dataSignal(n) = generatedData(ceil(n*dataRate/samplingFreq));
 end
 
 %% Why overwrite?
 dataSignal(signalLength) = dataSignal(signalLength - 1);
-actualDataSignal(actualSignalLength) = actualDataSignal(actualSignalLength - 1);
+orig_dataSignal(orig_SignalLength) = orig_dataSignal(orig_SignalLength - 1);
 
 %==== OOK ====%
 %encoded signal
 ookSignal = carrierSignal .* dataSignal;
 ookSignalPower = (norm(ookSignal)^2)/signalLength;
-ookNoisePower = ookSignalPower ./ SNR;
+%ookNoisePower = ookSignalPower ./ SNR;
 
 %unencoded signal
-orig_ookSignal = carrierSignal(1:actualSignalLength) .* actualDataSignal;
-orig_ookSignalPower = (norm(orig_ookSignal)^2)/actualSignalLength;
-orig_ookNoisePower = orig_ookSignalPower ./ SNR;
+orig_ookSignal = carrierSignal(1:orig_SignalLength) .* orig_dataSignal;
+orig_ookSignalPower = (norm(orig_ookSignal)^2)/orig_SignalLength;
+%orig_ookNoisePower = orig_ookSignalPower ./ SNR;
 
 %==== BPSK ====%
 bpskSourceSignal = dataSignal .* 2 - 1; %*2 bc of negative 1 and 1 bc ook is 0 to 1 so don't need *2
 bpskSignal = carrierSignal .* bpskSourceSignal; % this too
 bpskSignalPower = (norm(bpskSignal)^2)/signalLength;
-bpskNoisePower = bpskSignalPower ./ SNR;
+%bpskNoisePower = bpskSignalPower ./ SNR;
 
 %==== BFSK ====%
 bfskSourceSignal_high = carrierSignal_FSK1 .* (dataSignal == 1);
 bfskSourceSignal_low = carrierSignal_FSK2 .* (dataSignal == 0);
 bfskSignal = bfskSourceSignal_low + bfskSourceSignal_high;
 bfskSignalPower = (norm(bfskSignal)^2)/signalLength;
-bfskNoisePower = bfskSignalPower ./ SNR;
+%bfskNoisePower = bfskSignalPower ./ SNR;
 
 % For each value of SNR, test of 100 samples
 for i = 1: length(SNR)
@@ -128,7 +127,7 @@ for i = 1: length(SNR)
 
         %unencoded OOK
         orig_avgOOKNoisePower = orig_ookSignalPower ./ SNR(i);
-        orig_ookNoise = sqrt(orig_avgOOKNoisePower) .* transpose(randi([0 1], actualSignalLength, 1));
+        orig_ookNoise = sqrt(orig_avgOOKNoisePower) .* transpose(randi([0 1], orig_SignalLength, 1));
         orig_receivedOOKSignal = orig_ookSignal + orig_ookNoise;
 
         %BPSK
@@ -145,7 +144,7 @@ for i = 1: length(SNR)
         ookDemodulated = receivedOOKSignal .* (2 .* carrierSignal);
         ookFiltered = filtfilt(b, a, ookDemodulated);
 
-        orig_ookDemodulated = orig_receivedOOKSignal .* (2 .* carrierSignal(1:actualSignalLength));
+        orig_ookDemodulated = orig_receivedOOKSignal .* (2 .* carrierSignal(1:orig_SignalLength));
         orig_ookFiltered = filtfilt(b, a, orig_ookDemodulated);
 
         bpskDemodulated = receivedBPSKSignal .* (2 .* carrierSignal);
@@ -162,15 +161,15 @@ for i = 1: length(SNR)
         samplingPeriod = samplingFreq / dataRate;
         avgPower = amplitude^2/2;
 
-        [ookInput, ookOutput] = samplingforthreshold(ookFiltered, samplingPeriod, avgPower, bits);
-        [orig_ookInput, orig_ookOutput] = samplingforthreshold(orig_ookFiltered, samplingPeriod, avgPower, msgbits);    %note the change to unencoded bits
-        [bpskInput, bpskOutput] = samplingforthreshold(bpskFiltered, samplingPeriod, 0, bits); %threshold is 0 
-        [bfskInput, bfskOutput] = samplingforthreshold(bfskFiltered, samplingPeriod, 0, bits);
+        [ookInput, ookOutput] = samplingforthreshold(ookFiltered, samplingPeriod, avgPower, encoded_bits);
+        [orig_ookInput, orig_ookOutput] = samplingforthreshold(orig_ookFiltered, samplingPeriod, avgPower, bits);    %note the change to unencoded bits
+        [bpskInput, bpskOutput] = samplingforthreshold(bpskFiltered, samplingPeriod, 0, encoded_bits); %threshold is 0 
+        [bfskInput, bfskOutput] = samplingforthreshold(bfskFiltered, samplingPeriod, 0, encoded_bits);
 
         %Cyclic Decoding
-        decoded_OOK = decode(ookOutput, codeword_length, message_length, 'cyclic/binary', polynom, table);
-        decoded_BPSK = decode(bpskOutput, codeword_length, message_length, 'cyclic/binary', polynom, table);
-        decoded_BFSK = decode(bfskOutput, codeword_length, message_length, 'cyclic/binary', polynom, table);
+        decoded_OOK = decode(ookOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
+        decoded_BPSK = decode(bpskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
+        decoded_BFSK = decode(bfskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         
         ookError = biterr(decoded_OOK, generatedData) ./ signalLength;
         orig_ookError = biterr(orig_ookOutput, generatedData) ./ signalLength;
@@ -184,7 +183,7 @@ for i = 1: length(SNR)
     end
 
     ookErrorRate(i) = ookAvgError / testSamples;
-    ookErrorRate_orig(i) = orig_ookAvgError / testSamples;
+    orig_ookErrorRate(i) = orig_ookAvgError / testSamples;
     bpskErrorRate(i) = bpskAvgError / testSamples;
     bfskErrorRate(i) = bfskAvgError / testSamples;
     
@@ -200,7 +199,7 @@ end
 figure(1)
 p1 = semilogy(snrDB, ookErrorRate, 'r-*');
 hold on
-p2 = semilogy(snrDB, ookErrorRate_orig, 'k-*');
+p2 = semilogy(snrDB, orig_ookErrorRate, 'k-*');
 p3 = semilogy(snrDB, bpskErrorRate, 'b-*');
 p4 = semilogy(snrDB, bfskErrorRate, 'g-*');
 hold off
