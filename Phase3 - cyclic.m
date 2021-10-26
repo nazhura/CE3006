@@ -9,8 +9,9 @@ carrierFreqFSK1 = 10000;        %FSK modulation use - 10kHz
 carrierFreqFSK2 = carrierFreqFSK1 * 4;      %FSK modulation use - 40kHz
 
 %Self-defined: Codeword length (n) & Message length (k)
-codeword_length = 6;
+codeword_length = 7;
 message_length = 4;
+%Special Note: 7/4 seems to be the minimum required
 
 %carrier signal 16 times oversampled:
 samplingFreq = 16 * carrierFreq; %sampling frequency is 16 times the carrier frequency
@@ -173,10 +174,10 @@ for i = 1: length(SNR)
         decoded_BPSK = decode(bpskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         decoded_BFSK = decode(bfskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         
-        ookError = biterr(decoded_OOK, generatedData) ./ signalLength;
-        orig_ookError = biterr(orig_ookOutput, generatedData) ./ signalLength;
-        bpskError = biterr(decoded_BPSK, generatedData) ./ signalLength;
-        bfskError = biterr(decoded_BFSK, generatedData) ./ signalLength;
+        ookError = biterr(decoded_OOK, generatedData) ./ bits;
+        orig_ookError = biterr(orig_ookOutput, generatedData) ./ bits;
+        bpskError = biterr(decoded_BPSK, generatedData) ./ bits;
+        bfskError = biterr(decoded_BFSK, generatedData) ./ bits;
 
         ookAvgError = ookAvgError + ookError;
         orig_ookAvgError = orig_ookAvgError + orig_ookError;
@@ -209,6 +210,7 @@ hold off
 ylabel ('BER - Bit Error Rate');
 xlabel ('SNR(dB) - Signal to Noise Ratio in dB');
 legend([p1(1) p2(1) p3(1) p4(1)], {'Cyclic - Encoded OOK', 'Cyclic - Unencoded OOK', 'Cyclic - BPSK', 'Cyclic - BFSK'})
+%legend([p1(1) p2(1)], {'Cyclic - Encoded OOK', 'Cyclic - Unencoded OOK'})
 xlim([0 50]);
 
 
