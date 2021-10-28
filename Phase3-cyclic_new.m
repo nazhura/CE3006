@@ -96,9 +96,10 @@ ookSignalPower = ookEnergy/ookTime; %Power = Energy/Time
 orig_ookSignal = carrierSignal(1:orig_SignalLength) .* orig_dataSignal;
 orig_ookEnergy = sum(abs(orig_ookSignal).^2);
 orig_ookTime = orig_SignalLength;
-
 orig_ookSignalPower = orig_ookEnergy/orig_ookTime;
 
+%orig_ookSignal = carrierSignal(1:orig_SignalLength) .* orig_dataSignal;
+%orig_ookSignalPower = (norm(orig_ookSignal)^2)/orig_SignalLength;
 
 %==== BPSK ====%
 % Convert Input Binary Data to +1 and -1
@@ -140,25 +141,23 @@ for i = 1: length(SNR)
 
     for j = 1 : testSamples
         
-        generatedSignal = randi([0 1], signalLength, 1);
-        generatedSignal = transpose(generatedSignal);
-
-        orig_Signal = randi([0 1], orig_SignalLength, 1);
-        orig_Signal = transpose(orig_Signal);
+        generatedNoise = randn(1,signalLength);
+       
+        orig_generatedNoise = randn(1, orig_SignalLength);
         
         snrVal = SNR(i);
 
         %encoded OOK
-        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedSignal, snrVal);
+        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedNoise, snrVal);
 
         %unencoded OOK
-        orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_SignalLength, snrVal);
+        orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_generatedNoise, snrVal);
 
         %BPSK
-        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedSignal, snrVal);
+        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedNoise, snrVal);
 
         %BFSK
-        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedSignal, snrVal);
+        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedNoise, snrVal);
 
         %demodulation
         ookFiltered = ookbpskDemo(receivedOOKSignal,carrierSignal, b, a);
@@ -220,7 +219,7 @@ orig_ookErrorRate = zeros(length(SNR)); %unencoded OOK error rate
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
 bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 
-figure(13)
+figure(13);
 figure('Name','Measured Data');
 title('BER against SNR');
 semilogy(snrDB, BER_OOK, 'b-*');
