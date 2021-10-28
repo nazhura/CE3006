@@ -144,16 +144,16 @@ for i = 1: length(SNR)
         %% LINE 114-116 IN PHASE2.M
         
         %% NOTE: MODIFICATION MIGHT BE NEEDED
-        standardSignal = randi([0 1], signalLength, 1);
-        standardSignal = transpose(standardSignal);
+        generatedSignal = randi([0 1], signalLength, 1);
+        generatedSignal = transpose(generatedSignal);
 
-        orig_SignalLength = randi([0 1], orig_SignalLength, 1);
-        orig_SignalLength = transpose(orig_SignalLength);
+        orig_Signal = randi([0 1], orig_SignalLength, 1);
+        orig_Signal = transpose(orig_Signal);
         
         snrVal = SNR(i);
 
         %encoded OOK
-        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, standardSignal, snrVal);
+        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedSignal, snrVal);
 
         %unencoded OOK
         %orig_avgOOKNoisePower = orig_ookSignalPower ./ SNR(i);
@@ -162,10 +162,10 @@ for i = 1: length(SNR)
         orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_SignalLength, snrVal);
 
         %BPSK
-        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, standardSignal, snrVal);
+        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedSignal, snrVal);
 
         %BFSK
-        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, standardSignal, snrVal);
+        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedSignal, snrVal);
 
         %demodulation
         ookFiltered = ookbpskDemo(receivedOOKSignal,carrierSignal, b, a);
