@@ -8,20 +8,20 @@ carrierFreq = 10000; %10kHz for carrier frequency
 carrierFreqFSK1 = 10000;        %FSK modulation use - 10kHz
 carrierFreqFSK2 = carrierFreqFSK1 * 4;      %FSK modulation use - 40kHz
 
-%Self-defined: Codeword length (n) & Message length (k)
+%Codeword length (n) & Message length (k)
 codeword_length = 7;
 message_length = 4;
 %Special Note: 7/4 seems to be the minimum required
 
 %carrier signal 16 times oversampled:
-samplingFreq = 16 * carrierFreq; %sampling frequency is 16 times the carrier frequency
+samplingFreq = 16 * carrierFreq;
 
 %baseband data rate:
 dataRate = 1000; %1kbps
 
 %number of databits:
 bits = 1024;     %defined from Phase 1
-encoded_bits = bits*codeword_length/message_length;    
+extended_bits = bits*codeword_length/message_length;
 
 %sampling rate = sampling frequency / dataRate:
 samplingRate = samplingFreq / dataRate;
@@ -30,7 +30,7 @@ samplingRate = samplingFreq / dataRate;
 amplitude = 8; 
 
 %% time scale in seconds for ....
-time = encoded_bits/dataRate; %get the time in seconds
+time = extended_bits/dataRate; %get the time in seconds
 period = 1/samplingFreq;
 timeScale = 0 : period : time;
 
@@ -43,7 +43,7 @@ carrierSignal_FSK1 = amplitude .* cos(2*pi*carrierFreqFSK1*timeScale);
 carrierSignal_FSK2 = amplitude .* cos(2*pi*carrierFreqFSK2*timeScale);
 
 %signal length is for everywhere
-signalLength = samplingFreq * encoded_bits/dataRate + 1;     %encoded signal length
+signalLength = samplingFreq * extended_bits/dataRate + 1;     %encoded signal length
 orig_SignalLength = samplingFreq * bits/dataRate + 1;      %unencoded signal length
 
 %SNR
@@ -103,7 +103,7 @@ orig_ookSignalPower = (norm(orig_ookSignal)^2)/orig_SignalLength;
 
 %==== BPSK ====%
 bpskSourceSignal = dataSignal .* 2 - 1; %*2 bc of negative 1 and 1 bc ook is 0 to 1 so don't need *2
-bpskSignal = carrierSignal .* bpskSourceSignal; % this too
+bpskSignal = carrierSignal .* bpskSourceSignal;
 bpskSignalPower = (norm(bpskSignal)^2)/signalLength;
 %bpskNoisePower = bpskSignalPower ./ SNR;
 
@@ -164,10 +164,10 @@ for i = 1: length(SNR)
         samplingPeriod = samplingFreq / dataRate;
         avgPower = amplitude^2/2;
 
-        [ookInput, ookOutput] = samplingforthreshold(ookFiltered, samplingPeriod, avgPower, encoded_bits);
+        [ookInput, ookOutput] = samplingforthreshold(ookFiltered, samplingPeriod, avgPower, extended_bits);
         [orig_ookInput, orig_ookOutput] = samplingforthreshold(orig_ookFiltered, samplingPeriod, avgPower, bits);    %note the change to unencoded bits
-        [bpskInput, bpskOutput] = samplingforthreshold(bpskFiltered, samplingPeriod, 0, encoded_bits); %threshold is 0 
-        [bfskInput, bfskOutput] = samplingforthreshold(bfskFiltered, samplingPeriod, 0, encoded_bits);
+        [bpskInput, bpskOutput] = samplingforthreshold(bpskFiltered, samplingPeriod, 0, extended_bits); %threshold is 0 
+        [bfskInput, bfskOutput] = samplingforthreshold(bfskFiltered, samplingPeriod, 0, extended_bits);
 
         %Cyclic Decoding
         decoded_OOK = decode(ookOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
@@ -198,7 +198,7 @@ for i = 1: length(SNR)
 end
 
 
-%OOK vs BPSK bit error rate
+%OOK vs BPSK vs BFSK bit error rate
 figure(1)
 p1 = semilogy(snrDB, ookErrorRate, 'r-*');
 hold on
