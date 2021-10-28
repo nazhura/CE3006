@@ -1,5 +1,5 @@
-function receivedSignal = receivedSignal (signal, signalPower, generatedSignal, SNRVal)
+function receivedSignal = receivedSignal (signal, signalPower, generatedNoise, SNRVal)
     noisePower = signalPower ./ SNRVal;
-    noise = sqrt(noisePower) .* generatedSignal;
+    noise = sqrt(noisePower) .* generatedNoise;
     receivedSignal = signal + noise;
 end

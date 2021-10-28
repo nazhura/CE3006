@@ -33,11 +33,11 @@ carrierSignal = amplitude .* cos(2*pi*carrierFreq*timeScale);
 signalLength = samplingFreq * bits/dataRate + 1;
 
 %SNR
-snrDB = 0:0.2:20;
+snrDB = 0:1:20;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
-testSamples = 10;
+testSamples = 100;
 
 
 %generate data
@@ -63,9 +63,6 @@ ookTime = signalLength;
 
 ookSignalPower = ookEnergy/ookTime; %Power = Energy/Time
 ookNoisePower = ookSignalPower ./ SNR;
-
-
-
 
 
 %==== BPSK ====%
@@ -112,14 +109,13 @@ for i = 1 : length(SNR)
     for j = 1 : testSamples
 
         %generate data
-        generatedSignal = randi([0 1], signalLength, 1);
-        generatedSignal = transpose(generatedSignal);
-
+        generatedNoise = randn(1,signalLength);
+        
         snrVal = SNR(i);
 
-        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedSignal, snrVal);
-        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedSignal, snrVal);
-        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedSignal, snrVal);
+        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedNoise, snrVal);
+        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedNoise, snrVal);
+        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedNoise, snrVal);
         
         %demodulation
 
@@ -283,41 +279,62 @@ for i = 1 : length(SNR)
 
 end    
 
-% Calculate OOK coherent
-coherentOOK = coherent(0, ookNoisePower, amplitude, bits);
-
-% Calculate BPSK coherent
-coherentBPSK = coherent(1, bpskNoisePower, amplitude, bits);
-
-% Calculate BFSK coherent
+ % Calculate OOK coherent
+ coherentOOK = coherent(0, ookNoisePower, amplitude, bits);
+% 
+ % Calculate BPSK coherent
+ coherentBPSK = coherent(1, bpskNoisePower, amplitude, bits);
+% 
+%Calculate BFSK coherent
 coherentBFSK = coherent(1, bfskNoisePower, amplitude, bits);
+
+% % Calculate OOK coherent 
+% e1OOK = (1 / 2) * amplitude^2 / bits; 
+% e0OOk = 0; 
+% ebOOK = (1 / 2) * (e1OOK + e0OOk); 
+% noOOK = ookNoisePower ./ bits ./ 2; 
+% coherentOOK = (1 / 2) .* erfc(sqrt(ebOOK ./ (2 .* noOOK))); 
+%  
+% % Calculate BPSK coherent 
+% e1BPSK = (1 / 2) * amplitude^2 / bits; 
+% e0BPSK = (1 / 2) * amplitude^2 / bits; 
+% ebBPSK = (1 / 2) * (e1BPSK + e0BPSK); 
+% noBPSK = bpskNoisePower ./ bits ./ 2; 
+% coherentBPSK = (1 / 2) .* erfc(sqrt(ebBPSK ./ (2 .* noBPSK)));
 
 %need plot semilogy for all:
 ookErrorRate = zeros(length(SNR)); %OOK error rate
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
 bfskErrorRate = zeros(length(SNR)); %BFSK error rate
 
-figure(13);
-figure('Name','Measured Data');
+figure('Name','Experimented Data');
 semilogy(snrDB, BER_OOK, 'b-*');
-title('BER against SNR');
+title('Experimented BER Data');
 hold on
 semilogy (snrDB,BER_BPSK,'r-*');
 hold on
 semilogy (snrDB,BER_BFSK,'g-*');
 hold on
-semilogy (snrDB,coherentOOK,'m-*');
-hold on
-semilogy (snrDB,coherentBPSK,'k-*');
-hold on
-semilogy (snrDB,coherentBFSK,'c-*');
-hold on
 legend('OOK','BPSK', 'BFSK');
-axis([0 30 10^(-5) 1]);
+axis([0 15 10^(-10) 1]);
 xlabel('snrDB');
 ylabel('BER');
 hold off
 
+
+figure('Name','Theoretical Data');
+semilogy (snrDB,coherentOOK,'b-*');
+title('Theoretical BER Data');
+hold on
+semilogy (snrDB,coherentBPSK,'r-*');
+hold on
+semilogy (snrDB,coherentBFSK,'g-*');
+hold on
+legend('coherent OOK', 'coherent BPSK', 'coherent BFSK');
+axis([0 50 10^(-100) 1]);
+xlabel('snrDB');
+ylabel('BER');
+hold off
 
 
         
