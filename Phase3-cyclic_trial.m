@@ -140,10 +140,6 @@ for i = 1: length(SNR)
 
     for j = 1 : testSamples
         
-        %% TO CHECK: WHY GENERATEDSIGNAL IS HERE
-        %% LINE 114-116 IN PHASE2.M
-        
-        %% NOTE: MODIFICATION MIGHT BE NEEDED
         generatedSignal = randi([0 1], signalLength, 1);
         generatedSignal = transpose(generatedSignal);
 
@@ -156,9 +152,6 @@ for i = 1: length(SNR)
         receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedSignal, snrVal);
 
         %unencoded OOK
-        %orig_avgOOKNoisePower = orig_ookSignalPower ./ SNR(i);
-        %orig_ookNoise = sqrt(orig_avgOOKNoisePower) .* transpose(randi([0 1], orig_SignalLength, 1));
-        %orig_receivedOOKSignal = orig_ookSignal + orig_ookNoise;
         orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_SignalLength, snrVal);
 
         %BPSK
