@@ -116,8 +116,8 @@ for i = 1 : length(SNR)
 	for j = 1 : testSamples
       
         % encoded OOK
-		avgOOKNoisePower = ookSignalPower ./SNR(i);
-		ookNoise = sqrt(avgOOKNoisePower) .*transpose(randi([0 1], signalLength, 1));
+        avgOOKNoisePower = ookSignalPower ./SNR(i);
+        ookNoise = sqrt(avgOOKNoisePower) .*transpose(randi([0 1], signalLength, 1));
         receivedOOKSignal = ookSignal + ookNoise;
         
         % unencoded OOK
@@ -177,7 +177,7 @@ for i = 1 : length(SNR)
         bfskAvgError = bfskError + bfskAvgError;
     end
     
-	ookErrorRate(i) = ookAvgError / testSamples;
+    ookErrorRate(i) = ookAvgError / testSamples;
     orig_ookErrorRate(i) = orig_ookAvgError / testSamples;
     bpskErrorRate(i) = bpskAvgError / testSamples;
     bfskErrorRate(i) = bfskAvgError / testSamples;
