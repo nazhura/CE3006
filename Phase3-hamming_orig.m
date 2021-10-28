@@ -62,7 +62,7 @@ ookErrorRate_org = zeros(length(SNR));
 bpskErrorRate = zeros(length(SNR));
 bfskErrorRate = zeros(length(SNR));
         
-%generate data - Hamming
+%generate noise - Hamming
 generatedData = round(randi([0 1], bits,1 ));
 generatedData = transpose(generatedData);
 
@@ -117,22 +117,22 @@ for i = 1 : length(SNR)
       
         % encoded OOK
         avgOOKNoisePower = ookSignalPower ./SNR(i);
-        ookNoise = sqrt(avgOOKNoisePower) .*transpose(randi([0 1], signalLength, 1));
+        ookNoise = sqrt(avgOOKNoisePower) .*randn(1, signalLength);
         receivedOOKSignal = ookSignal + ookNoise;
         
         % unencoded OOK
         orig_avgOOKNoisePower = orig_ookSignalPower ./ SNR(i);
-        orig_ookNoise =  sqrt(orig_avgOOKNoisePower) .*transpose(randi([0 1],orig_SignalLength, 1));
+        orig_ookNoise =  sqrt(orig_avgOOKNoisePower) .* randn(1, orig_SignalLength);
         orig_receivedOOKSignal = orig_ookSignal + orig_ookNoise;
         
         % BPSK
         avgBPSKNoisePower = bpskSignalPower ./SNR(i);
-        bpskNoise = sqrt(avgBPSKNoisePower) .*transpose(randi([0 1],signalLength, 1));
+        bpskNoise = sqrt(avgBPSKNoisePower) .* randn(1, signalLength);
         receivedBPSKSignal = bpskSignal + bpskNoise;
         
         % BFSK
         avgBFSKNoisePower = bfskSignalPower ./SNR(i);
-        bfskNoise = sqrt(avgBFSKNoisePower) .*transpose(randi([0 1],signalLength, 1));
+        bfskNoise = sqrt(avgBFSKNoisePower) .*randn(1, signalLength);
         receivedBFSKSignal = bfskSignal + bfskNoise;
         
         % Non-coherent Detection method of demodulation
