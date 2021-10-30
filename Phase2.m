@@ -179,23 +179,22 @@ for i = 1 : length(SNR)
        figure(3);
        subplot(4,1,1);
        plot(dataSignal(1:limit));
-       title("Baseband oversampled signal (snippet)");
+       title("Baseband signal oversampled");
         
-       %Plotting of Received signal (corrupted with noise)
        subplot(4, 1, 2);
        plot(receivedOOKSignal(1:limit));
-       title("OOK received with noise (Snippet)");
-        
+       title("OOK modulated signal");
+
+       %Plotting of Received signal (corrupted with noise)
        subplot(4, 1, 3);
        plot(ookSignal(1:limit));
-       title("OOK modulated signal (Snippet)");
-
+       title("OOK received with noise");
        
         %Plotting of demodulated signal (mixed and passed through low pass filter
         figure(5);
         subplot(3, 1, 1);
         plot(ookInput(1:limit));
-        title("OOK demodulated and sampled");
+        title("OOK sampled demodulation");
 
        figure(6);
        subplot(4, 1, 1);
@@ -206,28 +205,28 @@ for i = 1 : length(SNR)
 
        subplot(4, 1, 2);
        plot(ookOutput);
-       title("OOK Decoded Data");
+       title("OOK decoded data");
        xlim([0 limit])
 
        %PLOT BPSK
        figure(7);
-       subplot(4,1,1);
-       plot(dataSignal(1:limit));
-       title("Baseband oversampled signal (snippet)");
-        
        %Plotting of Received signal (corrupted with noise)
-       subplot(4, 1, 2);
-       plot(receivedBPSKSignal(1:limit));
-       title("BPSK received with noise (Snippet)");
+       subplot(4, 1, 1);
+       plot(dataSignal(1:limit));
+       title("Baseband signal oversampled");
         
-       subplot(4, 1, 3);
+       subplot(4, 1, 2);
        plot(bpskSignal(1:limit));
-       title("BPSK modulated signal (Snippet)");
+       title("BPSK modulated signal");
+
+       subplot(4,1,3);
+       plot(receivedBPSKSignal(1:limit));
+       title("BPSK received with noise");
 
        figure(8);
        subplot(3, 1, 1);
        plot(bpskInput(1:limit));
-       title("BPSK demodulated and sampled");
+       title("BPSK sampled demodulation");
 
        figure(9);
        subplot(4, 1, 1);
@@ -238,28 +237,30 @@ for i = 1 : length(SNR)
 
        subplot(4, 1, 2);
        plot(bpskOutput);
-       title("BPSK Decoded Data");
+       title("BPSK decoded data");
        xlim([0 limit])
 
        %BFSK
        figure(10);
        subplot(4,1,1);
        plot(dataSignal(1:limit));
-       title("Baseband oversampled signal (snippet)");
+       title("Baseband signal oversampled");
         
-       %Plotting of Received signal (corrupted with noise)
+
        subplot(4, 1, 2);
-       plot(receivedBFSKSignal(1:limit));
-       title("BFSK received with noise (Snippet)");
-        
-       subplot(4, 1, 3);
        plot(bfskSignal(1:limit));
-       title("BFSK modulated signal (Snippet)");
+       title("BFSK modulated signal");
+
+       %Plotting of Received signal (corrupted with noise)
+       subplot(4, 1, 3);
+       plot(receivedBFSKSignal(1:limit));
+       title("BFSK received with noise");
+        
 
        figure(11);
        subplot(3, 1, 1);
        plot(bfskInput(1:limit));
-       title("BFSK demodulated and sampled");
+       title("BFSK sampled demodulation");
 
        figure(12);
        subplot(4, 1, 1);
@@ -270,7 +271,7 @@ for i = 1 : length(SNR)
 
        subplot(4, 1, 2);
        plot(bfskOutput);
-       title("BFSK Decoded Data");
+       title("BFSK decoded data");
        xlim([0 limit])
        
     end
