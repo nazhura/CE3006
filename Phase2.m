@@ -79,6 +79,7 @@ bpskSignalPower = bpskEnergy/bpskTime;
 bpskNoisePower = bpskSignalPower ./ SNR;
 
 
+
 %==== BFSK ===%
 carrierFreqBFSK1 = 50000; %first frequency is 50K
 carrierFreqBFSK2 = 10000; %second frequency is 10K
@@ -281,39 +282,21 @@ end
 
  % Calculate OOK coherent
  coherentOOK = coherent(0, ookNoisePower, amplitude, bits);
-% 
+ 
  % Calculate BPSK coherent
- coherentBPSK = coherent(1, bpskNoisePower, amplitude, bits);
-% 
+ coherentBPSK = coherent(2, bpskNoisePower, amplitude, bits);
+
 %Calculate BFSK coherent
 coherentBFSK = coherent(1, bfskNoisePower, amplitude, bits);
 
-% % Calculate OOK coherent 
-% e1OOK = (1 / 2) * amplitude^2 / bits; 
-% e0OOk = 0; 
-% ebOOK = (1 / 2) * (e1OOK + e0OOk); 
-% noOOK = ookNoisePower ./ bits ./ 2; 
-% coherentOOK = (1 / 2) .* erfc(sqrt(ebOOK ./ (2 .* noOOK))); 
-%  
-% % Calculate BPSK coherent 
-% e1BPSK = (1 / 2) * amplitude^2 / bits; 
-% e0BPSK = (1 / 2) * amplitude^2 / bits; 
-% ebBPSK = (1 / 2) * (e1BPSK + e0BPSK); 
-% noBPSK = bpskNoisePower ./ bits ./ 2; 
-% coherentBPSK = (1 / 2) .* erfc(sqrt(ebBPSK ./ (2 .* noBPSK)));
-
-%need plot semilogy for all:
-ookErrorRate = zeros(length(SNR)); %OOK error rate
-bpskErrorRate = zeros(length(SNR)); %BPSK error rate
-bfskErrorRate = zeros(length(SNR)); %BFSK error rate
 
 figure('Name','Experimented Data');
-semilogy(snrDB, BER_OOK, 'b-*');
+plot1 = semilogy(snrDB, BER_OOK, 'b-*');
 title('Experimented BER Data');
 hold on
-semilogy (snrDB,BER_BPSK,'r-*');
+plot2 = semilogy (snrDB,BER_BPSK,'r-*');
 hold on
-semilogy (snrDB,BER_BFSK,'g-*');
+plot3 = semilogy (snrDB,BER_BFSK,'g-*');
 hold on
 legend('OOK','BPSK', 'BFSK');
 axis([0 15 10^(-10) 1]);
@@ -331,7 +314,7 @@ hold on
 semilogy (snrDB,coherentBFSK,'g-*');
 hold on
 legend('coherent OOK', 'coherent BPSK', 'coherent BFSK');
-axis([0 50 10^(-100) 1]);
+axis([0 50 10^(-50) 1]);
 xlabel('snrDB');
 ylabel('BER');
 hold off
