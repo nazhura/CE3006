@@ -182,12 +182,12 @@ for i = 1 : length(SNR)
        title("Baseband signal oversampled");
         
        subplot(4, 1, 2);
-       plot(receivedOOKSignal(1:limit));
+       plot(ookSignal(1:limit));
        title("OOK modulated signal");
 
        %Plotting of Received signal (corrupted with noise)
        subplot(4, 1, 3);
-       plot(ookSignal(1:limit));
+       plot(receivedOOKSignal(1:limit));
        title("OOK received with noise");
        
         %Plotting of demodulated signal (mixed and passed through low pass filter
@@ -300,9 +300,9 @@ hold on
 plot3 = semilogy (snrDB,BER_BFSK,'g-*');
 hold on
 legend('OOK','BPSK', 'BFSK');
-axis([0 15 10^(-10) 1]);
-xlabel('snrDB');
-ylabel('BER');
+axis([0 20 10^(-10) 1]);
+xlabel('Signal-to-Noise Ratio (in dB)');
+ylabel('Bit Error Rate (BER)');
 hold off
 
 
@@ -316,8 +316,8 @@ semilogy (snrDB,coherentBFSK,'g-*');
 hold on
 legend('coherent OOK', 'coherent BPSK', 'coherent BFSK');
 axis([0 50 10^(-50) 1]);
-xlabel('snrDB');
-ylabel('BER');
+xlabel('Signal-to-Noise Ratio (in dB)');
+ylabel('Bit Error Rate (BER)');
 hold off
 
 
