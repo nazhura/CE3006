@@ -87,7 +87,6 @@ orig_dataSignal(orig_SignalLength) = orig_dataSignal(orig_SignalLength - 1);
 ookSignal = carrierSignal .* dataSignal;
 ookEnergy = sum(abs(ookSignal).^2);
 ookTime = signalLength;
-
 ookSignalPower = ookEnergy/ookTime; %Power = Energy/Time
 
 %unencoded signal
@@ -95,9 +94,6 @@ orig_ookSignal = orig_carrierSignal .* orig_dataSignal;
 orig_ookEnergy = sum(abs(orig_ookSignal).^2);
 orig_ookTime = orig_SignalLength;
 orig_ookSignalPower = orig_ookEnergy/orig_ookTime;
-
-%orig_ookSignal = carrierSignal(1:orig_SignalLength) .* orig_dataSignal;
-%orig_ookSignalPower = (norm(orig_ookSignal)^2)/orig_SignalLength;
 
 %==== BPSK ====%
 % Convert Input Binary Data to +1 and -1
