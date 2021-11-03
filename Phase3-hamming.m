@@ -35,6 +35,7 @@ orig_timeScale = 0 : period: orig_time;
 
 %carrier signal
 carrierSignal = amplitude .* cos(2*pi*carrierFreq*timeScale);
+orig_carrierSignal = amplitude .*cos(2*pi*carrierFreq*orig_timeScale);
 
 %signal length is for everywhere
 signalLength = samplingFreq*extended_bits/dataRate + 1;
@@ -45,7 +46,7 @@ snrDB = 0:0.2:20;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
-testSamples = 10;
+testSamples = 100;
         
 %generate data
 generatedData = round(randi([0 1], bits,1 ));
@@ -78,12 +79,15 @@ ookTime = signalLength;
 ookSignalPower = ookEnergy/ookTime; %Power = Energy/Time
 
 %unencoded signal
-orig_ookSignal = carrierSignal(1:orig_SignalLength) .* orig_dataSignal;
+orig_ookSignal = orig_carrierSignal .* orig_dataSignal;
 orig_ookEnergy = sum(abs(orig_ookSignal).^2);
 orig_ookTime = orig_SignalLength;
 orig_ookSignalPower = orig_ookEnergy/orig_ookTime;
 
 %==== BPSK ====%
+% Convert Input Binary Data to +1 and -1
+% If Input Binary Data = 1, 2 * (1 - 0.5) = 1
+% If input Binary Data = 0, 2 * (0 - 0.5) = -1
 bpskSourceSignal = 2.*(dataSignal-0.5);
 bpskSignal = carrierSignal .* bpskSourceSignal;
 bpskEnergy = sum(abs(bpskSignal).^2);
@@ -166,6 +170,9 @@ for i = 1 : length(SNR)
         bfskAvgError = bfskError + bfskAvgError;
     end
     
+    %Removed plot
+    
+    
 	BER_OOK(i) = ookAvgError / testSamples;
     BER_ORIG_OOK(i) = orig_ookAvgError / testSamples;
     BER_BPSK(i) = bpskAvgError / testSamples;
@@ -173,23 +180,24 @@ for i = 1 : length(SNR)
 
 end
 
+%Removed theoretical BER
 ookErrorRate = zeros(length(SNR)); %encoded OOK error rate
 orig_ookErrorRate = zeros(length(SNR)); %unencoded OOK error rate
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
 bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 
 % Plot OOK vs DBSK bit error rate
-figure(1)
-p1 = semilogy(snrDB, BER_OOK,'r-*');
+figure('Name', 'Measure Data')
+semilogy(snrDB, BER_OOK,'b-*');
 hold on
-p2 = semilogy(snrDB, BER_ORIG_OOK, 'k-*');
+semilogy(snrDB, BER_ORIG_OOK, 'c-*');
 hold on
-p3 = semilogy(snrDB, BER_BPSK, 'b-*');
+semilogy(snrDB, BER_BPSK, 'r-*');
 hold on
-p4 = semilogy(snrDB, BER_BFSK, 'g-*');
+semilogy(snrDB, BER_BFSK, 'g-*');
 hold on
-legend([p1(1) p2(1) p3(1) p4(1)],{'ENCODED OOK','UNENCODED OOK','BPSK','BFSK'})
-xlim([0 50]);
+legend('ENCODED OOK','UNENCODED OOK','BPSK','BFSK')
+axis([0 20 10^(-10) 1]);
+xlabel('Signal-to-Noise Ratio (in dB)');
 ylabel('Bit Error Rate (BER)');
-xlabel('SNR (dB)');
 hold off
