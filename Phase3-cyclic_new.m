@@ -1,7 +1,4 @@
-%Setup
-clear all;
-close all;
-clc;
+clear all; close all; clc;
 
 %carrier frequency:
 carrierFreq = 10000; %10kHz for carrier frequency
@@ -9,7 +6,7 @@ carrierFreq = 10000; %10kHz for carrier frequency
 %Self-defined: Codeword length (n) & Message length (k)
 codeword_length = 7;
 message_length = 4;
-%Special Note: 7/4 seems to be the minimum required
+%Possible combinations: 3/1, 7/4
 
 %carrier signal 16 times oversampled:
 samplingFreq = 16 * carrierFreq;
@@ -27,16 +24,20 @@ samplingRate = samplingFreq / dataRate;
 %amplitude for gain
 amplitude = 8; 
 
-%% time scale: encoded_bits or bits?
+%% time scale
 time = extended_bits/dataRate; %get the time in seconds
 period = 1/samplingFreq;
 timeScale = 0 : period : time;
+
+orig_time = bits/dataRate;
+orig_timeScale = 0 : period: orig_time;
 
 %Assume a 6th order bandpass filter with cut-off frequency 0.2:
 [b, a] = butter(6, 0.2);    %low-pass filter - set in Phase 2
 
 %carrier signal
 carrierSignal = amplitude .* cos(2*pi*carrierFreq*timeScale);
+orig_carrierSignal = amplitude .* cos(2*pi*carrierFreq*orig_timeScale);
 
 %signal length is for everywhere
 signalLength = samplingFreq * extended_bits/dataRate + 1;     %encoded signal length
@@ -93,7 +94,7 @@ ookTime = signalLength;
 ookSignalPower = ookEnergy/ookTime; %Power = Energy/Time
 
 %unencoded signal
-orig_ookSignal = carrierSignal(1:orig_SignalLength) .* orig_dataSignal;
+orig_ookSignal = orig_carrierSignal .* orig_dataSignal;
 orig_ookEnergy = sum(abs(orig_ookSignal).^2);
 orig_ookTime = orig_SignalLength;
 orig_ookSignalPower = orig_ookEnergy/orig_ookTime;
