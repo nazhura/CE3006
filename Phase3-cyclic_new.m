@@ -47,7 +47,7 @@ snrDB = 0:0.2:20;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
-testSamples = 50;
+testSamples = 100;
 
 %For Cyclic code: g (poly), h (h) and s (syndrometable)
 %generator polynomial and parity check matrix for cyclic encoding
