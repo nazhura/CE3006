@@ -50,8 +50,7 @@ SNR = (10.^(snrDB/10));
 %number of test per samples
 testSamples = 50;
 
-%For Cyclic code: g, h and s
-
+%For Cyclic code: g (poly), h (h) and s (syndrometable)
 %generator polynomial and parity check matrix for cyclic encoding
 pol = cyclpoly(codeword_length, message_length);
 h = cyclgen(codeword_length, pol);
@@ -122,10 +121,7 @@ carrierSignalBFSK1 = amplitude .* cos(2*pi*carrierFreqBFSK1*timeScale);
 carrierSignalBFSK2 = amplitude .* cos(2*pi*carrierFreqBFSK2*timeScale);
 
 %BFSK modulation:
-dataSignal2 = mod(dataSignal + 1, 2); %signal = 1
-%Getting 0 for carrierSignal2:
-%(1 + 1 = 2) % 2 = 0
-%(0 + 1 = 1) % 2 = 1
+dataSignal2 = mod(dataSignal + 1, 2);
 
 bfskSignal = carrierSignalBFSK1 .* dataSignal + carrierSignalBFSK2 .* dataSignal2;
 bfskEnergy = sum(abs(bfskSignal).^2);
@@ -182,8 +178,6 @@ for i = 1: length(SNR)
         decoded_OOK = decode(ookOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         decoded_BPSK = decode(bpskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         decoded_BFSK = decode(bfskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
-        
-        %% TO CHECK LINE 138+ FOR INTEGRATION
 
         ookError = biterr(decoded_OOK, generatedData) ./ bits;
         ookAvgError = ookAvgError + ookError;
@@ -198,11 +192,7 @@ for i = 1: length(SNR)
         bfskAvgError = bfskAvgError + bfskError;
     end
     
-    %Plot for SNR @ 5dB?
-    %if(i == 5)
-        %% To implement
-
-    %end
+    %removed plot
     
     BER_OOK(i) = ookAvgError / testSamples;
     BER_ORIG_OOK(i) = orig_ookAvgError / testSamples;
@@ -212,8 +202,7 @@ for i = 1: length(SNR)
 
 end
 
-%% NEED TO CALCUALTE OOK COHERENT? (Link 286)
-
+%Removed theoretical BER
 
 ookErrorRate = zeros(length(SNR)); %encoded OOK error rate
 orig_ookErrorRate = zeros(length(SNR)); %unencoded OOK error rate
