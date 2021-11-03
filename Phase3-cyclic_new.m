@@ -219,7 +219,6 @@ orig_ookErrorRate = zeros(length(SNR)); %unencoded OOK error rate
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
 bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 
-figure(13);
 figure('Name','Measured Data');
 title('BER against SNR');
 semilogy(snrDB, BER_OOK, 'b-*');
