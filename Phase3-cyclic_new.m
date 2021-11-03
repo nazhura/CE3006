@@ -48,7 +48,7 @@ snrDB = 0:0.2:20;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
-testSamples = 10;
+testSamples = 50;
 
 %For Cyclic code: g, h and s
 
@@ -163,7 +163,7 @@ for i = 1: length(SNR)
         %demodulation
         ookFiltered = ookbpskDemo(receivedOOKSignal,carrierSignal, b, a);
 
-        orig_ookDemodulated = orig_receivedOOKSignal .* (2 .* carrierSignal(1:orig_SignalLength));
+        orig_ookDemodulated = orig_receivedOOKSignal .* (2 .* orig_carrierSignal);
         orig_ookFiltered = filtfilt(b, a, orig_ookDemodulated);
 
         bpskFiltered = ookbpskDemo(receivedBPSKSignal,carrierSignal, b, a);
@@ -231,7 +231,7 @@ hold on
 semilogy (snrDB,BER_BFSK,'g-*');
 hold on
 legend('ENCODED OOK','UNENCODED OOK', 'BPSK', 'BFSK');
-axis([0 30 10^(-5) 1]);
-xlabel('snrDB');
-ylabel('BER');
+axis([0 20 10^(-10) 1]);
+xlabel('Signal-to-Noise Ratio (in dB)');
+ylabel('Bit Error Rate (BER)');
 hold off
