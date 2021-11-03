@@ -6,7 +6,7 @@ carrierFreq = 10000; %10kHz for carrier frequency
 %Self-defined: Codeword length (n) & Message length (k)
 codeword_length = 7;
 message_length = 4;
-%Possible combinations: 3/1, 7/4
+%Possible combinations: 3/1, 7/4, 15/11, 31/26
 
 %carrier signal 16 times oversampled:
 samplingFreq = 16 * carrierFreq;
@@ -16,14 +16,14 @@ dataRate = 1000; %1kbps
 
 %number of databits:
 bits = 1024;     %defined from Phase 1
-extended_bits = bits*codeword_length/message_length; %for unencoded bit length
+extended_bits = bits*codeword_length/message_length;    %for unencoded bit length
 
 samplingRate = samplingFreq / dataRate;
 
 %amplitude for gain
 amplitude = 8; 
 
-%% time scale
+% time scale
 time = extended_bits/dataRate;      %get the time in seconds
 period = 1/samplingFreq;
 timeScale = 0 : period : time;
@@ -47,7 +47,7 @@ snrDB = 0:0.2:20;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
-testSamples = 100;
+testSamples = 10;
 
 %For Cyclic code: g (poly), h (h) and s (syndrometable)
 %generator polynomial and parity check matrix for cyclic encoding
@@ -137,9 +137,7 @@ for i = 1: length(SNR)
     for j = 1 : testSamples
         
         generatedNoise = randn(1,signalLength);
-       
         orig_generatedNoise = randn(1, orig_SignalLength);
-        
         snrVal = SNR(i);
 
         %encoded OOK
@@ -156,10 +154,7 @@ for i = 1: length(SNR)
 
         %demodulation
         ookFiltered = ookbpskDemo(receivedOOKSignal,carrierSignal, b, a);
-
-        orig_ookDemodulated = orig_receivedOOKSignal .* (2 .* orig_carrierSignal);
-        orig_ookFiltered = filtfilt(b, a, orig_ookDemodulated);
-
+        orig_ookFiltered = ookbpskDemo(orig_receivedOOKSignal,orig_carrierSignal, b, a);        %note the change to unencoded
         bpskFiltered = ookbpskDemo(receivedBPSKSignal,carrierSignal, b, a);
         differenceOfBFSK = bfskDemodulation(receivedBFSKSignal,carrierSignalBFSK1, carrierSignalBFSK2, b, a);
 
