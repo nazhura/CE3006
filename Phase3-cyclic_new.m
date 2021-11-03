@@ -16,20 +16,19 @@ dataRate = 1000; %1kbps
 
 %number of databits:
 bits = 1024;     %defined from Phase 1
-extended_bits = bits*codeword_length/message_length;    
+extended_bits = bits*codeword_length/message_length; %for unencoded bit length
 
-%sampling rate = sampling frequency / dataRate:
 samplingRate = samplingFreq / dataRate;
 
 %amplitude for gain
 amplitude = 8; 
 
 %% time scale
-time = extended_bits/dataRate; %get the time in seconds
+time = extended_bits/dataRate;      %get the time in seconds
 period = 1/samplingFreq;
 timeScale = 0 : period : time;
 
-orig_time = bits/dataRate;
+orig_time = bits/dataRate;      %get the time in seconds
 orig_timeScale = 0 : period: orig_time;
 
 %Assume a 6th order bandpass filter with cut-off frequency 0.2:
@@ -59,7 +58,6 @@ h = cyclgen(codeword_length, pol);
 syndrometable = syndtable(h);
 
 %generate data
-%% to check if encoded or unencoded bits
 generatedData = round(randi([0 1], bits, 1));
 generatedData = transpose(generatedData);
 
@@ -192,7 +190,7 @@ for i = 1: length(SNR)
         bfskAvgError = bfskAvgError + bfskError;
     end
     
-    %removed plot
+    %Removed plot
     
     BER_OOK(i) = ookAvgError / testSamples;
     BER_ORIG_OOK(i) = orig_ookAvgError / testSamples;
