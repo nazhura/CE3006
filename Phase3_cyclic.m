@@ -4,7 +4,7 @@ clear all; close all; clc;
 carrierFreq = 10000; %10kHz for carrier frequency
 
 %Self-defined: Codeword length (n) & Message length (k)
-codeword_length = 7;
+codeword_length = 6;
 message_length = 4;
 %Some possible combinations: 3/1, 7/4, 15/11, 31/26
 
@@ -43,7 +43,7 @@ signalLength = samplingFreq * extended_bits/dataRate + 1;     %encoded signal le
 orig_SignalLength = samplingFreq * bits/dataRate + 1;      %unencoded signal length
 
 %SNR
-snrDB = 0:0.5:20;
+snrDB = 0:0.5:15;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
