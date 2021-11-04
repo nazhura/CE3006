@@ -4,9 +4,9 @@ clear all; close all; clc;
 carrierFreq = 10000; %10kHz for carrier frequency
 
 %Self-defined: Codeword length (n) & Message length (k)
-codeword_length = 6;
+codeword_length = 7;
 message_length = 4;
-%Possible combinations: 3/1, 7/4, 15/11, 31/26
+%Some possible combinations: 3/1, 7/4, 15/11, 31/26
 
 %carrier signal 16 times oversampled:
 samplingFreq = 16 * carrierFreq;
@@ -234,7 +234,7 @@ hold on
 semilogy (snrDB,BER_BFSK,'g-*');
 hold on
 legend('ENCODED OOK','UNENCODED OOK', 'BPSK', 'BFSK');
-axis([0 15 10^(-10) 1]);
+axis([0 15 10^(-7) 1]);
 xlabel('Signal-to-Noise Ratio (in dB)');
 ylabel('Bit Error Rate (BER)');
 hold off
