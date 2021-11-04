@@ -43,11 +43,11 @@ signalLength = samplingFreq * extended_bits/dataRate + 1;     %encoded signal le
 orig_SignalLength = samplingFreq * bits/dataRate + 1;      %unencoded signal length
 
 %SNR
-snrDB = 0:0.2:20;
+snrDB = 0:1:20;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
-testSamples = 10;
+testSamples = 100;
 
 %For Cyclic code: g (poly), h (h) and s (syndrometable)
 %generator polynomial and parity check matrix for cyclic encoding
@@ -58,7 +58,7 @@ h = cyclgen(codeword_length, pol);
 syndrometable = syndtable(h);
 
 %generate data
-generatedData = round(randi([0 1], bits, 1));
+generatedData = randi([0 1], bits, 1);
 generatedData = transpose(generatedData);
 
 %encoding - cyclic
@@ -167,17 +167,42 @@ for i = 1: length(SNR)
         decoded_OOK = decode(ookOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         decoded_BPSK = decode(bpskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         decoded_BFSK = decode(bfskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
+        
+        ookError = 0;
+        orig_ookError = 0;
+        bpskError = 0;
+        bfskError = 0;
 
-        ookError = biterr(decoded_OOK, generatedData) ./ bits;
+        for k = 1: bits
+            if(decoded_OOK(k) ~= generatedData(k))
+                ookError = ookError + 1;
+            end
+            if(orig_ookOutput(k) ~= generatedData(k))
+                orig_ookError = orig_ookError+1;
+            end
+            if(decoded_BPSK(k) ~= generatedData(k))
+               bpskError = bpskError + 1;
+            end
+            if(decoded_BFSK(k) ~= generatedData(k))
+               bfskError = bfskError + 1;
+            end
+
+        end
+
+        %ookError = biterr(decoded_OOK, generatedData) ./ bits;
+        ookError = ookError ./bits;
         ookAvgError = ookAvgError + ookError;
 
-        orig_ookError = biterr(orig_ookOutput, generatedData) ./ bits;
+        %orig_ookError = biterr(orig_ookOutput, generatedData) ./ bits;
+        orig_ookError = orig_ookError ./bits;
         orig_ookAvgError = orig_ookAvgError + orig_ookError;
 
-        bpskError = biterr(decoded_BPSK, generatedData) ./ bits;
+        %bpskError = biterr(decoded_BPSK, generatedData) ./ bits;
+        bpskError = bpskError ./bits;
         bpskAvgError = bpskAvgError + bpskError;
 
-        bfskError = biterr(decoded_BFSK, generatedData) ./ bits;
+        %bfskError = biterr(decoded_BFSK, generatedData) ./ bits;
+        bfskError = bfskError ./bits;
         bfskAvgError = bfskAvgError + bfskError;
     end
     
@@ -209,7 +234,7 @@ hold on
 semilogy (snrDB,BER_BFSK,'g-*');
 hold on
 legend('ENCODED OOK','UNENCODED OOK', 'BPSK', 'BFSK');
-axis([0 20 10^(-10) 1]);
+axis([0 15 10^(-10) 1]);
 xlabel('Signal-to-Noise Ratio (in dB)');
 ylabel('Bit Error Rate (BER)');
 hold off
