@@ -136,21 +136,14 @@ for i = 1: length(SNR)
         orig_generatedNoise = randn(1, orig_SignalLength);
         snrVal = SNR(i);
 
-        %encoded OOK
-        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedNoise, snrVal);
-
-        %unencoded OOK
-        orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_generatedNoise, snrVal);
-
-        %BPSK
-        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedNoise, snrVal);
-
-        %BFSK
-        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedNoise, snrVal);
+        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedNoise, snrVal); %encoded OOK
+        orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_generatedNoise, snrVal); %unencoded OOK
+        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedNoise, snrVal); %encoded BPSK
+        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedNoise, snrVal); %encoded BFSK
 
         %demodulation
         ookFiltered = ookbpskDemo(receivedOOKSignal,carrierSignal, b, a);
-        orig_ookFiltered = ookbpskDemo(orig_receivedOOKSignal,orig_carrierSignal, b, a);        %note the change to unencoded
+        orig_ookFiltered = ookbpskDemo(orig_receivedOOKSignal,orig_carrierSignal, b, a); %note the change for unencoded bits
         bpskFiltered = ookbpskDemo(receivedBPSKSignal,carrierSignal, b, a);
         differenceOfBFSK = bfskDemodulation(receivedBFSKSignal,carrierSignalBFSK1, carrierSignalBFSK2, b, a);
 
@@ -159,8 +152,8 @@ for i = 1: length(SNR)
         avgPower = amplitude^2/2;
 
         [ookInput, ookOutput] = sampleAndThreshold(ookFiltered, samplingPeriod, avgPower, extended_bits);
-        [orig_ookInput, orig_ookOutput] = sampleAndThreshold(orig_ookFiltered, samplingPeriod, avgPower, bits);    %note the change to unencoded bits
-        [bpskInput, bpskOutput] = sampleAndThreshold(bpskFiltered, samplingPeriod, 0, extended_bits); %threshold is 0 
+        [orig_ookInput, orig_ookOutput] = sampleAndThreshold(orig_ookFiltered, samplingPeriod, avgPower, bits);    %note the change for unencoded bits
+        [bpskInput, bpskOutput] = sampleAndThreshold(bpskFiltered, samplingPeriod, 0, extended_bits); %threshold is 0, not Aˆ2/2 
         [bfskInput, bfskOutput] = sampleAndThreshold(differenceOfBFSK, samplingPeriod, 0, extended_bits);
 
         %Cyclic Decoding
@@ -168,7 +161,7 @@ for i = 1: length(SNR)
         decoded_BPSK = decode(bpskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         decoded_BFSK = decode(bfskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         
-        ookError = 0;
+        ookError = 0;                                           
         orig_ookError = 0;
         bpskError = 0;
         bfskError = 0;
@@ -189,35 +182,23 @@ for i = 1: length(SNR)
 
         end
 
-        %ookError = biterr(decoded_OOK, generatedData) ./ bits;
         ookError = ookError ./bits;
         ookAvgError = ookAvgError + ookError;
-
-        %orig_ookError = biterr(orig_ookOutput, generatedData) ./ bits;
         orig_ookError = orig_ookError ./bits;
         orig_ookAvgError = orig_ookAvgError + orig_ookError;
-
-        %bpskError = biterr(decoded_BPSK, generatedData) ./ bits;
         bpskError = bpskError ./bits;
         bpskAvgError = bpskAvgError + bpskError;
-
-        %bfskError = biterr(decoded_BFSK, generatedData) ./ bits;
         bfskError = bfskError ./bits;
         bfskAvgError = bfskAvgError + bfskError;
     end
-    
     %Removed plot
-    
     BER_OOK(i) = ookAvgError / testSamples;
     BER_ORIG_OOK(i) = orig_ookAvgError / testSamples;
     BER_BPSK(i) = bpskAvgError / testSamples;
     BER_BFSK(i) = bfskAvgError / testSamples;
-
-
 end
 
 %Removed theoretical BER
-
 ookErrorRate = zeros(length(SNR)); %encoded OOK error rate
 orig_ookErrorRate = zeros(length(SNR)); %unencoded OOK error rate
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
@@ -227,7 +208,7 @@ figure('Name','Measured Data');
 title('BER against SNR');
 semilogy(snrDB, BER_OOK, 'b-*');
 hold on
-semilogy(snrDB, BER_ORIG_OOK, 'c-*');
+semilogy(snrDB, BER_ORIG_OOK, 'k-*');
 hold on
 semilogy (snrDB,BER_BPSK,'r-*');
 hold on
