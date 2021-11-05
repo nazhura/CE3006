@@ -1,28 +1,29 @@
 clear all;close all; clc;
 %carrier frequency:
-carrierFreq = 10000; %10kHz
+carrierFreq = 10000; %10kHz for carrier frequency
 
 %Self-defined: Codeword length (n) & Message length (k)
 codeword_length = 7;
 message_length = 4;
+%Some possible combinations: 3/1, 7/4, 15/11, 31/26
 
 %carrier signal 16 times oversampled:
-samplingFreq = 16* carrierFreq; %sampling frequency is 16 times the carrier frequency
+samplingFreq = 16* carrierFreq; 
 
 %baseband data rate:
 dataRate = 1000; %1kbps
 
 %number of databits:
 bits = 1024;
-extended_bits = bits*codeword_length/message_length;
+extended_bits = bits*codeword_length/message_length; %for uncoded bit length
 
 %sampling rate = sampling frequency / dataRate:
 samplingRate = samplingFreq / dataRate;
 
-%amplitude for
+%amplitude for gain
 amplitude = 8;
 
-%timescale in seconds for ....
+%timescale
 time = extended_bits/dataRate; %get the time in seconds
 period = 1/samplingFreq;
 timeScale = 0 : period : time;
@@ -30,7 +31,7 @@ timeScale = 0 : period : time;
 orig_time = bits/dataRate;      %get the time in seconds
 orig_timeScale = 0 : period: orig_time;
 
-%Assume a 6th order Butterworth filter with 0.2 normalised cutoff freq
+%Assume a 6th order Bandpass filter with cut-off frequency 0.2:
 [b, a] = butter(6, 0.2);    %low-pass filter - set in Phase 2
 
 %carrier signal
@@ -38,11 +39,11 @@ carrierSignal = amplitude .* cos(2*pi*carrierFreq*timeScale);
 orig_carrierSignal = amplitude .*cos(2*pi*carrierFreq*orig_timeScale);
 
 %signal length is for everywhere
-signalLength = samplingFreq*extended_bits/dataRate + 1;
-orig_SignalLength = samplingFreq* bits/dataRate + 1;
+signalLength = samplingFreq*extended_bits/dataRate + 1;  %encoded signal length
+orig_SignalLength = samplingFreq* bits/dataRate + 1;     %unencoded signal length
 
 %SNR
-snrDB = 0:0.2:20;
+snrDB = 0:0.5:15;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
@@ -108,7 +109,6 @@ bfskSignal = carrierSignalBFSK1 .* dataSignal + carrierSignalBFSK2 .* dataSignal
 bfskEnergy = sum(abs(bfskSignal).^2);
 bfskTime = signalLength;
 bfskSignalPower = bfskEnergy/bfskTime;
-%avgBFSKNoisePower = bfskSignalPower ./ SNR;
 
 % For different SNR values, test over 20 samples
 for i = 1 : length(SNR)
@@ -122,24 +122,16 @@ for i = 1 : length(SNR)
         generatedNoise = randn(1,signalLength);
         orig_generatedNoise = randn(1, orig_SignalLength);
         snrVal = SNR(i);
-        % encoded OOK
+
         receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedNoise, snrVal);
-         
-        % unencoded OOK
         orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_generatedNoise, snrVal);
-        
-        % BPSK
         receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedNoise, snrVal);
-        
-        % BFSK
         receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedNoise, snrVal);
         
-        % Non-coherent Detection method of demodulation
+        %demodulation
         ookFiltered = ookbpskDemo(receivedOOKSignal,carrierSignal, b, a);
-        
-        orig_ookDemodulated = orig_receivedOOKSignal .* (2 .* carrierSignal(1:orig_SignalLength));
-        orig_ookFiltered = filtfilt(b, a, orig_ookDemodulated);       
-        
+        %orig_ookDemodulated = orig_receivedOOKSignal .* (2 .* carrierSignal(1:orig_SignalLength));
+        orig_ookFiltered = ookbpskDemo(orig_receivedOOKSignal, orig_carrierSignal, b, a);       
         bpskFiltered = ookbpskDemo(receivedBPSKSignal,carrierSignal, b, a);
         differenceOfBFSK = bfskDemodulation(receivedBFSKSignal,carrierSignalBFSK1, carrierSignalBFSK2, b, a);
  
@@ -148,8 +140,8 @@ for i = 1 : length(SNR)
         avgPower = amplitude^2/2;
         
         [ookInput, ookOutput] = sampleAndThreshold(ookFiltered, samplingPeriod, avgPower, extended_bits);
-        [orig_ookInput, orig_ookOutput] = sampleAndThreshold(orig_ookFiltered, samplingPeriod, avgPower, bits);
-        [bpskInput, bpskOutput] = sampleAndThreshold(bpskFiltered, samplingPeriod, 0, extended_bits);
+        [orig_ookInput, orig_ookOutput] = sampleAndThreshold(orig_ookFiltered, samplingPeriod, avgPower, bits);    %note the change for unencoded bits
+        [bpskInput, bpskOutput] = sampleAndThreshold(bpskFiltered, samplingPeriod, 0, extended_bits); %threshold is 0, not Aˆ2/2 
         [bfskInput, bfskOutput] = sampleAndThreshold(differenceOfBFSK, samplingPeriod, 0, extended_bits);
 
         %Cyclic Decoding
@@ -157,22 +149,37 @@ for i = 1 : length(SNR)
         decoded_BPSK = decode(bpskOutput,codeword_length, message_length,'hamming/binary');
         decoded_BFSK = decode(bfskOutput,codeword_length, message_length,'hamming/binary');
         
-        ookError = biterr(decoded_OOK, generatedData) ./ bits;
-        ookAvgError = ookError + ookAvgError;
+        ookError = 0;
+        orig_ookError = 0;
+        bpskError = 0;
+        bfskError = 0;
         
-        orig_ookError = biterr(orig_ookOutput, generatedData) ./ bits;
-        orig_ookAvgError = orig_ookError + orig_ookAvgError;
+        for k = 1: bits
+            if(decoded_OOK(k) ~= generatedData(k))
+                ookError = ookError + 1;
+            end
+            if(orig_ookOutput(k) ~= generatedData(k))
+                orig_ookError = orig_ookError+1;
+            end
+            if(decoded_BPSK(k) ~= generatedData(k))
+               bpskError = bpskError + 1;
+            end
+            if(decoded_BFSK(k) ~= generatedData(k))
+               bfskError = bfskError + 1;
+            end
+
+        end
         
-        bpskError = biterr(decoded_BPSK, generatedData) ./ bits;
-        bpskAvgError = bpskError + bpskAvgError;
-        
-        bfskError = biterr(decoded_BFSK, generatedData) ./ bits;
-        bfskAvgError = bfskError + bfskAvgError;
+        ookError = ookError ./bits;
+        ookAvgError = ookAvgError + ookError;
+        orig_ookError = orig_ookError ./bits;
+        orig_ookAvgError = orig_ookAvgError + orig_ookError;
+        bpskError = bpskError ./bits;
+        bpskAvgError = bpskAvgError + bpskError;
+        bfskError = bfskError ./bits;
+        bfskAvgError = bfskAvgError + bfskError;
     end
-    
-    %Removed plot
-    
-    
+    %Removed plot 
 	BER_OOK(i) = ookAvgError / testSamples;
     BER_ORIG_OOK(i) = orig_ookAvgError / testSamples;
     BER_BPSK(i) = bpskAvgError / testSamples;
@@ -187,17 +194,18 @@ bpskErrorRate = zeros(length(SNR)); %BPSK error rate
 bfskErrorRate = zeros(length(SNR)); %BPSK error rate
 
 % Plot OOK vs DBSK bit error rate
-figure('Name', 'Measure Data')
+figure('Name', 'Measured Data')
+title('BER against SNR');
 semilogy(snrDB, BER_OOK,'b-*');
 hold on
-semilogy(snrDB, BER_ORIG_OOK, 'c-*');
+semilogy(snrDB, BER_ORIG_OOK, 'k-*');
 hold on
 semilogy(snrDB, BER_BPSK, 'r-*');
 hold on
 semilogy(snrDB, BER_BFSK, 'g-*');
 hold on
 legend('ENCODED OOK','UNENCODED OOK','BPSK','BFSK')
-axis([0 20 10^(-10) 1]);
+axis([0 15 10^(-7) 1]);
 xlabel('Signal-to-Noise Ratio (in dB)');
 ylabel('Bit Error Rate (BER)');
 hold off
