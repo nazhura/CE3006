@@ -18,7 +18,6 @@ samplingRate = samplingFreq / dataRate;
 %define amplitude
 amplitude = 8; 
 
-%time scale in seconds for ....
 time = bits/dataRate; %get the time in seconds
 period = 1/samplingFreq; %period = 1/frequency
 timeScale = 0 : period : time; 
@@ -33,7 +32,8 @@ carrierSignal = amplitude .* cos(2*pi*carrierFreq*timeScale);
 signalLength = samplingFreq * bits/dataRate + 1;
 
 %SNR
-snrDB = 0:0.5:15;
+%snrDB = 0:0.5:15;
+snrDB = 0:1:20;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
@@ -81,7 +81,7 @@ bpskNoisePower = bpskSignalPower ./ SNR;
 
 
 %==== BFSK ===%
-carrierFreqBFSK1 = 50000; %first frequency is 50K
+carrierFreqBFSK1 = 30000; %first frequency is 50K
 carrierFreqBFSK2 = 10000; %second frequency is 10K
 
 %generate carrier signal for BFSK:
@@ -291,13 +291,14 @@ end
 coherentBFSK = coherent(1, bfskNoisePower, amplitude, bits);
 
 
+
 figure('Name','Experimented Data');
-plot1 = semilogy(snrDB, BER_OOK, 'b-*');
+plot1 = semilogy(snrDB, BER_OOK, 'r-*');
 title('Experimented BER Data');
 hold on
-plot2 = semilogy (snrDB,BER_BPSK,'r-*');
+plot2 = semilogy (snrDB,BER_BPSK,'g-*');
 hold on
-plot3 = semilogy (snrDB,BER_BFSK,'g-*');
+plot3 = semilogy (snrDB,BER_BFSK,'b-*');
 hold on
 legend('OOK','BPSK', 'BFSK');
 axis([0 15 10^(-7) 1]);
@@ -307,12 +308,12 @@ hold off
 
 
 figure('Name','Theoretical Data');
-semilogy (snrDB,coherentOOK,'b-*');
+semilogy (snrDB,coherentOOK,'r-*');
 title('Theoretical BER Data');
 hold on
-semilogy (snrDB,coherentBPSK,'r-*');
+semilogy (snrDB,coherentBPSK,'g-*');
 hold on
-semilogy (snrDB,coherentBFSK,'g-*');
+semilogy (snrDB,coherentBFSK,'b-*');
 hold on
 legend('coherent OOK', 'coherent BPSK', 'coherent BFSK');
 axis([0 50 10^(-50) 1]);
@@ -320,7 +321,25 @@ xlabel('Signal-to-Noise Ratio (in dB)');
 ylabel('Bit Error Rate (BER)');
 hold off
 
-
+figure('Name','Experimented Data and Theoretical Data');
+semilogy (snrDB, coherentOOK,'r', 'linewidth', 1.5);
+hold on02
+semilogy (snrDB, coherentBPSK,'g', 'linewidth', 1.5);
+hold on
+semilogy (snrDB, coherentBFSK,'b', 'linewidth', 1.5);
+hold on
+plot1 = semilogy(snrDB, BER_OOK,'r*');
+hold on
+plot2 = semilogy(snrDB, BER_BPSK, 'g*');
+hold on
+plot3 = semilogy(snrDB, BER_BFSK, 'b*');
+hold off
+ylabel('Bit Error Rate (BER)');
+xlabel('SNR (dB)');
+legend('OOK (Theoretical)', 'BPSK (Theoretical)', 'BFSK (Theoretical)', 'OOK (Measured)', 'BPSK (Measured)', 'BFSK (Measured)');
+ylim([10^(-5) 10^(-1)]);
+xlim([0 15]);
+title("Empirical and Theoretical BER for Coherrent Detection Techniques")
         
 
 
