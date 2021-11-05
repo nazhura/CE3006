@@ -89,47 +89,42 @@ for x = 1:length(SNR)
 end
 
 BER_Predicted = 1/2.*erfc(sqrt(SNR));
-
 figure('Name','Measured Data');
 semilogy(SNR_dB, BER, 'b-*');
 xlabel('SNR_dB');
 ylabel('BER');
-title('BER against SNR');
+title('BER against SNR, Step Size = 5dB');
 hold on
 semilogy (SNR_dB,BER_Predicted,'m');
 legend('Calculated','Theoretical');
-axis([0 50 10^(-10) 1]);
+axis([0 50 10^(-20) 1]);
 hold off
 
+axis = 250;
+
 figure('Name', 'Binary Data Comparison');
-subplot(5,1,1);
+subplot(4,1,1);
 plot(inputBinaryData);
 title("Generated Input Data");
-xlim([0 bits])
+xlim([0 axis])
 grid on
 
-subplot(5,1,2);
+subplot(4,1,2);
 plot(reconstructed_data(1,:));
 title("Reconstructed Data, SNR = 0dB");
-xlim([0 bits])
+xlim([0 axis])
 grid on
 
-subplot(5,1,3);
+subplot(4,1,3);
 plot(reconstructed_data(2,:));
 title("Reconstructed Data, SNR = 5dB");
-xlim([0 bits])
+xlim([0 axis])
 grid on
 
-subplot(5,1,4);
+subplot(4,1,4);
 plot(reconstructed_data(3,:));
 title("Reconstructed Data, SNR = 10dB");
-xlim([0 bits])
-grid on
-
-subplot(5,1,5);
-plot(reconstructed_data(4,:));
-title("Reconstructed Data, SNR = 15dB");
-xlim([0 bits])
+xlim([0 axis])
 grid on
 
 %% Phase1: Data Generation 0dB to 20dB intervals = 0.2dB
@@ -228,40 +223,10 @@ figure('Name','Measured Data');
 semilogy(SNR_dB, BER, 'b-*');
 xlabel('SNR_dB');
 ylabel('BER');
-title('BER against SNR');
+title('BER against SNR, Step Size = 0.5dB');
 hold on
 semilogy (SNR_dB,BER_Predicted,'m');
 legend('Calculated','Theoretical');
-axis([0 20 10^(-20) 1]);
+axis([0 15 10^(-7) 1]);
 hold off
 
-figure('Name', 'Binary Data Comparison');
-subplot(5,1,1);
-plot(inputBinaryData);
-title("Generated Input Data");
-xlim([0 bits])
-grid on
-
-subplot(5,1,2);
-plot(reconstructed_data(1,:));
-title("Reconstructed Data, SNR = 0dB");
-xlim([0 bits])
-grid on
-
-subplot(5,1,3);
-plot(reconstructed_data(2,:));
-title("Reconstructed Data, SNR = 5dB");
-xlim([0 bits])
-grid on
-
-subplot(5,1,4);
-plot(reconstructed_data(3,:));
-title("Reconstructed Data, SNR = 10dB");
-xlim([0 bits])
-grid on
-
-subplot(5,1,5);
-plot(reconstructed_data(4,:));
-title("Reconstructed Data, SNR = 15dB");
-xlim([0 bits])
-grid on
