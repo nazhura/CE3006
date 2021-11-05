@@ -33,7 +33,7 @@ carrierSignal = amplitude .* cos(2*pi*carrierFreq*timeScale);
 signalLength = samplingFreq * bits/dataRate + 1;
 
 %SNR
-snrDB = 0:1:20;
+snrDB = 0:0.5:15;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
@@ -300,7 +300,7 @@ hold on
 plot3 = semilogy (snrDB,BER_BFSK,'g-*');
 hold on
 legend('OOK','BPSK', 'BFSK');
-axis([0 20 10^(-10) 1]);
+axis([0 15 10^(-7) 1]);
 xlabel('Signal-to-Noise Ratio (in dB)');
 ylabel('Bit Error Rate (BER)');
 hold off

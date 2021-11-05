@@ -21,3 +21,4 @@ function coherentDetect = coherent(check, noisePower, amplitude, bits)
     end
    
 end
+0.5*erfc(sqrt((10.^(Eb_N0_dB/10))/2))
