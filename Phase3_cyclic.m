@@ -4,9 +4,9 @@ clear all; close all; clc;
 carrierFreq = 10000; %10kHz for carrier frequency
 
 %Self-defined: Codeword length (n) & Message length (k)
-codeword_length = 7;
+codeword_length = 6;
 message_length = 4;
-%Possible combinations: 3/1, 7/4, 15/11, 31/26
+%Some possible combinations: 3/1, 7/4, 15/11, 31/26
 
 %carrier signal 16 times oversampled:
 samplingFreq = 16 * carrierFreq;
@@ -43,11 +43,11 @@ signalLength = samplingFreq * extended_bits/dataRate + 1;     %encoded signal le
 orig_SignalLength = samplingFreq * bits/dataRate + 1;      %unencoded signal length
 
 %SNR
-snrDB = 0:0.2:20;
+snrDB = 0:0.5:15;
 SNR = (10.^(snrDB/10));
 
 %number of test per samples
-testSamples = 10;
+testSamples = 100;
 
 %For Cyclic code: g (poly), h (h) and s (syndrometable)
 %generator polynomial and parity check matrix for cyclic encoding
@@ -58,7 +58,7 @@ h = cyclgen(codeword_length, pol);
 syndrometable = syndtable(h);
 
 %generate data
-generatedData = round(randi([0 1], bits, 1));
+generatedData = randi([0 1], bits, 1);
 generatedData = transpose(generatedData);
 
 %encoding - cyclic
@@ -136,21 +136,14 @@ for i = 1: length(SNR)
         orig_generatedNoise = randn(1, orig_SignalLength);
         snrVal = SNR(i);
 
-        %encoded OOK
-        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedNoise, snrVal);
-
-        %unencoded OOK
-        orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_generatedNoise, snrVal);
-
-        %BPSK
-        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedNoise, snrVal);
-
-        %BFSK
-        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedNoise, snrVal);
+        receivedOOKSignal = receivedSignal(ookSignal, ookSignalPower, generatedNoise, snrVal); %encoded OOK
+        orig_receivedOOKSignal = receivedSignal(orig_ookSignal, orig_ookSignalPower, orig_generatedNoise, snrVal); %unencoded OOK
+        receivedBPSKSignal = receivedSignal(bpskSignal, bpskSignalPower, generatedNoise, snrVal); %encoded BPSK
+        receivedBFSKSignal = receivedSignal(bfskSignal, bfskSignalPower, generatedNoise, snrVal); %encoded BFSK
 
         %demodulation
         ookFiltered = ookbpskDemo(receivedOOKSignal,carrierSignal, b, a);
-        orig_ookFiltered = ookbpskDemo(orig_receivedOOKSignal,orig_carrierSignal, b, a);        %note the change to unencoded
+        orig_ookFiltered = ookbpskDemo(orig_receivedOOKSignal,orig_carrierSignal, b, a); %note the change for unencoded bits
         bpskFiltered = ookbpskDemo(receivedBPSKSignal,carrierSignal, b, a);
         differenceOfBFSK = bfskDemodulation(receivedBFSKSignal,carrierSignalBFSK1, carrierSignalBFSK2, b, a);
 
@@ -159,40 +152,53 @@ for i = 1: length(SNR)
         avgPower = amplitude^2/2;
 
         [ookInput, ookOutput] = sampleAndThreshold(ookFiltered, samplingPeriod, avgPower, extended_bits);
-        [orig_ookInput, orig_ookOutput] = sampleAndThreshold(orig_ookFiltered, samplingPeriod, avgPower, bits);    %note the change to unencoded bits
-        [bpskInput, bpskOutput] = sampleAndThreshold(bpskFiltered, samplingPeriod, 0, extended_bits); %threshold is 0 
+        [orig_ookInput, orig_ookOutput] = sampleAndThreshold(orig_ookFiltered, samplingPeriod, avgPower, bits);    %note the change for unencoded bits
+        [bpskInput, bpskOutput] = sampleAndThreshold(bpskFiltered, samplingPeriod, 0, extended_bits); %threshold is 0, not Aˆ2/2 
         [bfskInput, bfskOutput] = sampleAndThreshold(differenceOfBFSK, samplingPeriod, 0, extended_bits);
 
         %Cyclic Decoding
         decoded_OOK = decode(ookOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         decoded_BPSK = decode(bpskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
         decoded_BFSK = decode(bfskOutput, codeword_length, message_length, 'cyclic/binary', pol, syndrometable);
+        
+        ookError = 0;                                           
+        orig_ookError = 0;
+        bpskError = 0;
+        bfskError = 0;
 
-        ookError = biterr(decoded_OOK, generatedData) ./ bits;
+        for k = 1: bits
+            if(decoded_OOK(k) ~= generatedData(k))
+                ookError = ookError + 1;
+            end
+            if(orig_ookOutput(k) ~= generatedData(k))
+                orig_ookError = orig_ookError+1;
+            end
+            if(decoded_BPSK(k) ~= generatedData(k))
+               bpskError = bpskError + 1;
+            end
+            if(decoded_BFSK(k) ~= generatedData(k))
+               bfskError = bfskError + 1;
+            end
+
+        end
+
+        ookError = ookError ./bits;
         ookAvgError = ookAvgError + ookError;
-
-        orig_ookError = biterr(orig_ookOutput, generatedData) ./ bits;
+        orig_ookError = orig_ookError ./bits;
         orig_ookAvgError = orig_ookAvgError + orig_ookError;
-
-        bpskError = biterr(decoded_BPSK, generatedData) ./ bits;
+        bpskError = bpskError ./bits;
         bpskAvgError = bpskAvgError + bpskError;
-
-        bfskError = biterr(decoded_BFSK, generatedData) ./ bits;
+        bfskError = bfskError ./bits;
         bfskAvgError = bfskAvgError + bfskError;
     end
-    
     %Removed plot
-    
     BER_OOK(i) = ookAvgError / testSamples;
     BER_ORIG_OOK(i) = orig_ookAvgError / testSamples;
     BER_BPSK(i) = bpskAvgError / testSamples;
     BER_BFSK(i) = bfskAvgError / testSamples;
-
-
 end
 
 %Removed theoretical BER
-
 ookErrorRate = zeros(length(SNR)); %encoded OOK error rate
 orig_ookErrorRate = zeros(length(SNR)); %unencoded OOK error rate
 bpskErrorRate = zeros(length(SNR)); %BPSK error rate
@@ -202,14 +208,14 @@ figure('Name','Measured Data');
 title('BER against SNR');
 semilogy(snrDB, BER_OOK, 'b-*');
 hold on
-semilogy(snrDB, BER_ORIG_OOK, 'c-*');
+semilogy(snrDB, BER_ORIG_OOK, 'k-*');
 hold on
 semilogy (snrDB,BER_BPSK,'r-*');
 hold on
 semilogy (snrDB,BER_BFSK,'g-*');
 hold on
 legend('ENCODED OOK','UNENCODED OOK', 'BPSK', 'BFSK');
-axis([0 20 10^(-10) 1]);
+axis([0 15 10^(-7) 1]);
 xlabel('Signal-to-Noise Ratio (in dB)');
 ylabel('Bit Error Rate (BER)');
 hold off
