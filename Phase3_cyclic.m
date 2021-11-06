@@ -4,7 +4,7 @@ clear all; close all; clc;
 carrierFreq = 10000; %10kHz for carrier frequency
 
 %Self-defined: Codeword length (n) & Message length (k)
-codeword_length = 6;
+codeword_length = 7;
 message_length = 4;
 %Some possible combinations: 3/1, 7/4, 15/11, 31/26
 
@@ -179,7 +179,6 @@ for i = 1: length(SNR)
             if(decoded_BFSK(k) ~= generatedData(k))
                bfskError = bfskError + 1;
             end
-
         end
 
         ookError = ookError ./bits;
